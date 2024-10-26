@@ -68,6 +68,20 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Function to update commodity dropdown
+function updateCommoditySelect() {
+    const commoditySelect = document.getElementById('commoditySelect');
+    commoditySelect.innerHTML = '<option value="">Select Commodity</option>';
+
+    commodityTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        commoditySelect.appendChild(option);
+    });
+    console.log("Updated commodity dropdown:", commodityTypes);
+}
+
 // Function to add a deployment station without saving the marker
 function addDeploymentStation() {
     const stationName = document.getElementById('stationName').value;
@@ -117,20 +131,6 @@ function updateStationSelect() {
         stationSelect.appendChild(option);
     }
     console.log("Updated station dropdown:", Object.keys(stations));
-}
-
-// Function to update commodity dropdown
-function updateCommoditySelect() {
-    const commoditySelect = document.getElementById('commoditySelect');
-    commoditySelect.innerHTML = '<option value="">Select Commodity</option>';
-
-    commodityTypes.forEach(type => {
-        const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type;
-        commoditySelect.appendChild(option);
-    });
-    console.log("Updated commodity dropdown:", commodityTypes);
 }
 
 // Modified saveStations function to exclude markers
