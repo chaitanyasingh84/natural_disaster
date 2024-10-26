@@ -3,7 +3,8 @@ const adminUsername = 'admin';
 const adminPassword = 'password';
 
 // Data storage
-let stations = loadStations(); // Load stations from localStorage on page load
+let stations = loadStations();
+let commodityTypes = loadCommodityTypes();
 let loggedIn = false;
 
 // Login function
@@ -14,7 +15,7 @@ function login() {
     if (username === adminUsername && password === adminPassword) {
         loggedIn = true;
         localStorage.setItem('loggedIn', 'true');
-        window.location.href = 'dashboard.html'; // Redirect to dashboard
+        window.location.href = 'dashboard.html';
     } else {
         document.getElementById('error-message').textContent = 'Incorrect username or password';
     }
@@ -23,13 +24,13 @@ function login() {
 // Logout function
 function logout() {
     localStorage.removeItem('loggedIn');
-    window.location.href = 'index.html'; // Redirect to login page
+    window.location.href = 'index.html';
 }
 
 // Check if admin is logged in when loading dashboard
 if (window.location.pathname.includes('dashboard.html')) {
     if (!localStorage.getItem('loggedIn')) {
-        window.location.href = 'index.html'; // Redirect to login if not logged in
+        window.location.href = 'index.html';
     }
 }
 
@@ -41,13 +42,13 @@ if (document.getElementById('map')) {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Load existing station markers on map
     Object.keys(stations).forEach(stationName => {
         const station = stations[stationName];
         station.marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`Station: ${stationName}`);
     });
 
     updateStationSelect();
+    updateCommoditySelect();
     updateStationList();
 }
 
@@ -62,10 +63,8 @@ function addDeploymentStation() {
         return;
     }
 
-    // Add to stations object
     stations[stationName] = { lat, lon, commodities: {} };
 
-    // Add marker to map
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
     stations[stationName].marker = marker;
 
@@ -73,13 +72,29 @@ function addDeploymentStation() {
     updateStationSelect();
     updateStationList();
 
-    // Clear input fields
     document.getElementById('stationName').value = '';
     document.getElementById('stationLat').value = '';
     document.getElementById('stationLon').value = '';
 }
 
-// Function to update station select dropdown
+// Function to add a new commodity type
+function addCommodityType() {
+    const newType = document.getElementById('newCommodityType').value;
+    if (!newType) {
+        alert("Please enter a valid commodity type.");
+        return;
+    }
+
+    if (!commodityTypes.includes(newType)) {
+        commodityTypes.push(newType);
+        saveCommodityTypes();
+        updateCommoditySelect();
+    }
+
+    document.getElementById('newCommodityType').value = '';
+}
+
+// Function to update station dropdown
 function updateStationSelect() {
     const stationSelect = document.getElementById('stationSelect');
     stationSelect.innerHTML = '<option value="">Select Station</option>';
@@ -92,18 +107,30 @@ function updateStationSelect() {
     }
 }
 
-// Function to add a commodity to a selected station
+// Function to update commodity dropdown
+function updateCommoditySelect() {
+    const commoditySelect = document.getElementById('commoditySelect');
+    commoditySelect.innerHTML = '<option value="">Select Commodity</option>';
+
+    commodityTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        commoditySelect.appendChild(option);
+    });
+}
+
+// Function to add commodity to a station
 function addCommodity() {
     const stationName = document.getElementById('stationSelect').value;
-    const commodityType = document.getElementById('commodityType').value;
+    const commodityType = document.getElementById('commoditySelect').value;
     const quantity = parseInt(document.getElementById('commodityQuantity').value);
 
     if (!stationName || !commodityType || isNaN(quantity)) {
-        alert("Please select a station, and provide valid commodity type and quantity.");
+        alert("Please select a station and a commodity type, and provide a valid quantity.");
         return;
     }
 
-    // Initialize commodity quantity if not present, then add quantity
     if (!stations[stationName].commodities[commodityType]) {
         stations[stationName].commodities[commodityType] = 0;
     }
@@ -112,12 +139,11 @@ function addCommodity() {
     saveStations();
     updateStationList();
 
-    // Clear commodity input fields
-    document.getElementById('commodityType').value = '';
+    document.getElementById('commoditySelect').value = '';
     document.getElementById('commodityQuantity').value = 1;
 }
 
-// Function to update the station list display
+// Update station list display
 function updateStationList() {
     const stationList = document.getElementById('stationList');
     stationList.innerHTML = '';
@@ -133,12 +159,10 @@ function updateStationList() {
             const quantity = station.commodities[commodity];
             commodityItem.innerHTML = `${commodity}: ${quantity} `;
 
-            // Increase quantity button
             const increaseButton = document.createElement('button');
             increaseButton.textContent = "+";
             increaseButton.onclick = () => changeQuantity(stationName, commodity, 1);
 
-            // Decrease quantity button
             const decreaseButton = document.createElement('button');
             decreaseButton.textContent = "-";
             decreaseButton.onclick = () => changeQuantity(stationName, commodity, -1);
@@ -153,26 +177,9 @@ function updateStationList() {
     }
 }
 
-// Function to change the quantity of a commodity at a specific station
+// Adjust commodity quantity
 function changeQuantity(stationName, commodity, amount) {
     if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
         stations[stationName].commodities[commodity] += amount;
         if (stations[stationName].commodities[commodity] < 0) {
-            stations[stationName].commodities[commodity] = 0; // Prevent negative quantities
-        }
-
-        saveStations();
-        updateStationList();
-    }
-}
-
-// Save stations to localStorage
-function saveStations() {
-    localStorage.setItem('stations', JSON.stringify(stations));
-}
-
-// Load stations from localStorage
-function loadStations() {
-    const savedStations = localStorage.getItem('stations');
-    return savedStations ? JSON.parse(savedStations) : {};
-}
+            stations[stationName].commodities[commodity]
