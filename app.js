@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.1.0";
+const version = "1.0.0";
 
 // Display the version number on the website
 window.onload = function () {
@@ -64,6 +64,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
         updateStationSelect();
         updateStationList();
+        updateCommoditySelect(); // Update commodity dropdown on page load
     }
 });
 
@@ -118,6 +119,20 @@ function updateStationSelect() {
     console.log("Updated station dropdown:", Object.keys(stations));
 }
 
+// Function to update commodity dropdown
+function updateCommoditySelect() {
+    const commoditySelect = document.getElementById('commoditySelect');
+    commoditySelect.innerHTML = '<option value="">Select Commodity</option>';
+
+    commodityTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        commoditySelect.appendChild(option);
+    });
+    console.log("Updated commodity dropdown:", commodityTypes);
+}
+
 // Modified saveStations function to exclude markers
 function saveStations() {
     const stationsToSave = {};
@@ -150,7 +165,7 @@ function addCommodityType() {
     if (!commodityTypes.includes(newType)) {
         commodityTypes.push(newType);
         saveCommodityTypes();
-        updateCommoditySelect();
+        updateCommoditySelect(); // Update dropdown after adding new commodity type
     }
 
     document.getElementById('newCommodityType').value = '';
