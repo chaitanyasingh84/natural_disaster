@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.7.0";
+const version = "1.0.0";
 
 // Display the version number on the website
 window.onload = function () {
@@ -146,24 +146,41 @@ function addDeploymentStation() {
 function addMarkerWithTooltip(stationName, lat, lon, commodities) {
     const markerKey = stationName;
 
+    // Check if there are any non-zero commodities at this station
+    const hasSupplies = Object.values(commodities).some(quantity => quantity > 0);
+
+    // If there are no supplies, remove the marker (if it exists) and return
+    if (!hasSupplies) {
+        if (markers[markerKey]) {
+            map.removeLayer(markers[markerKey]);
+            delete markers[markerKey]; // Remove from markers object
+        }
+        return;
+    }
+
+    // Remove the existing marker if we are updating it
     if (markers[markerKey]) {
         map.removeLayer(markers[markerKey]);
     }
 
+    // Create a simple icon
     const icon = L.divIcon({
         className: 'simple-icon',
         html: `<div style="width: 20px; height: 20px; background-color: #007bff; border-radius: 50%;"></div>`,
         iconSize: [20, 20]
     });
 
+    // Format tooltip content
     const tooltipContent = formatCommoditiesTooltip(commodities);
 
+    // Add the marker with the tooltip
     const marker = L.marker([lat, lon], { icon })
         .addTo(map)
         .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' });
 
     markers[markerKey] = marker;
 
+    // Re-center map after updating markers
     centerMapOnMarkers();
 }
 
