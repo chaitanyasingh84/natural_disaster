@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+}
+
+#map {
+    width: 80%;
+    height: 500px;
+    margin-top: 20px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+#form-container {
+    margin: 20px;
+}
+
+#locationList {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px;
+}
