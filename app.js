@@ -98,7 +98,7 @@ function addDeploymentStation() {
 // Helper function to add a marker to the map
 function addMarkerToMap(stationName, lat, lon) {
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
-    stations[stationName].marker = marker;
+    stations[stationName].marker = marker; // Do not store marker in localStorage
     console.log("Marker added for station:", stationName, lat, lon);
 }
 
@@ -114,6 +114,25 @@ function updateStationSelect() {
         stationSelect.appendChild(option);
     }
     console.log("Updated station dropdown:", Object.keys(stations));
+}
+
+// Modified saveStations function to exclude markers
+function saveStations() {
+    const stationsToSave = {};
+    Object.keys(stations).forEach(stationName => {
+        const { lat, lon, commodities } = stations[stationName];
+        stationsToSave[stationName] = { lat, lon, commodities }; // Exclude marker
+    });
+    localStorage.setItem('stations', JSON.stringify(stationsToSave));
+    console.log("Stations saved to localStorage:", stationsToSave);
+}
+
+// Modified loadStations function
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    const loadedStations = savedStations ? JSON.parse(savedStations) : {};
+    console.log("Loaded stations from localStorage:", loadedStations);
+    return loadedStations;
 }
 
 // Additional functions for commodities and persistence
@@ -155,19 +174,7 @@ function addCommodity() {
     document.getElementById('commodityQuantity').value = 1;
 }
 
-// Persistence functions
-function saveStations() {
-    localStorage.setItem('stations', JSON.stringify(stations));
-    console.log("Stations saved to localStorage:", stations);
-}
-
-function loadStations() {
-    const savedStations = localStorage.getItem('stations');
-    const loadedStations = savedStations ? JSON.parse(savedStations) : {};
-    console.log("Loaded stations from localStorage:", loadedStations);
-    return loadedStations;
-}
-
+// Persistence functions for commodity types
 function saveCommodityTypes() {
     localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
 }
