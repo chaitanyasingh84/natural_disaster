@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.3.0";
+const version = "1.0.0";
 
 // Display the version number on the website
 window.onload = function () {
@@ -17,6 +17,26 @@ const adminPassword = 'password';
 let stations = loadStations();
 let commodityTypes = loadCommodityTypes();
 let markers = {}; // Store markers for each station and commodity
+const commodityColors = {}; // Store colors for each commodity
+
+// Generate a color palette with 30 unique colors
+function generateColorPalette() {
+    const colors = [];
+    for (let i = 0; i < 30; i++) {
+        // Generate a random hex color code
+        colors.push(`#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`);
+    }
+    return colors;
+}
+
+// Assign colors to commodities from the palette
+const colorPalette = generateColorPalette();
+function getColorForCommodity(commodity) {
+    if (!commodityColors[commodity]) {
+        commodityColors[commodity] = colorPalette[Object.keys(commodityColors).length % colorPalette.length];
+    }
+    return commodityColors[commodity];
+}
 
 // Login function
 function login() {
@@ -143,7 +163,14 @@ function addMarkerToMap(stationName, lat, lon, commodity, quantity) {
 
     // Only add marker if quantity is greater than zero
     if (quantity > 0) {
-        const marker = L.marker([lat, lon]).addTo(map).bindPopup(
+        const color = getColorForCommodity(commodity);
+        const icon = L.divIcon({
+            className: 'custom-icon',
+            html: `<div style="background-color:${color}; width: 20px; height: 20px; border-radius: 50%;"></div>`,
+            iconSize: [20, 20]
+        });
+
+        const marker = L.marker([lat, lon], { icon }).addTo(map).bindPopup(
             `Station: ${stationName}<br>Commodity: ${commodity}<br>Quantity: ${quantity}`
         );
         markers[markerKey] = marker; // Save marker reference
@@ -219,7 +246,7 @@ function addCommodity() {
     saveStations();
     addMarkerToMap(stationName, stations[stationName].lat, stations[stationName].lon, commodityType, quantity);
     updateStationList();
-    centerMapOnMarkers(); // Re-center map after updating a commodity
+    centerMapOnMarkers();
 
     document.getElementById('commoditySelect').value = '';
     document.getElementById('commodityQuantity').value = 1;
@@ -290,6 +317,6 @@ function changeQuantity(stationName, commodity, amount) {
         );
 
         updateStationList();
-        centerMapOnMarkers(); // Re-center map after updating a commodity
+        centerMapOnMarkers();
     }
 }
