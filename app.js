@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.6.0";
+const version = "1.0.0";
 
 // Display the version number on the website
 window.onload = function () {
@@ -37,10 +37,52 @@ function getColorForCommodity(commodity) {
     return commodityColors[commodity];
 }
 
+// Login function
+function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    if (username === adminUsername && password === adminPassword) {
+        localStorage.setItem('loggedIn', 'true');
+        console.log("Login successful.");
+        window.location.href = 'dashboard.html';
+    } else {
+        document.getElementById('error-message').textContent = 'Incorrect username or password';
+    }
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('loggedIn');
+    console.log("User logged out.");
+    window.location.href = 'index.html';
+}
+
+// Check if admin is logged in when loading dashboard
+if (window.location.pathname.includes('dashboard.html')) {
+    if (!localStorage.getItem('loggedIn')) {
+        console.log("Redirecting to login page - user not logged in.");
+        window.location.href = 'index.html';
+    }
+}
+
+// Function to load stations from localStorage
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {}; // Return parsed stations or empty object
+}
+
+// Function to load commodity types from localStorage
+function loadCommodityTypes() {
+    const savedTypes = localStorage.getItem('commodityTypes');
+    return savedTypes ? JSON.parse(savedTypes) : []; // Return parsed types or empty array
+}
+
 // Initialize map only if on the dashboard page and the map element exists
 let map;
 window.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById('map')) {
+        console.log("Initializing map...");
         map = L.map('map').setView([20.5937, 78.9629], 5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
@@ -55,7 +97,7 @@ window.addEventListener("DOMContentLoaded", () => {
         updateStationSelect();
         updateStationList();
         updateCommoditySelect();
-        centerMapOnMarkers();
+        centerMapOnMarkers(); // Center map on initial markers
     }
 });
 
@@ -69,9 +111,11 @@ function centerMapOnMarkers() {
     });
 
     if (markerList.length === 1) {
-        map.setView(markerList[0].getLatLng(), 8);
+        map.setView(markerList[0].getLatLng(), 8); // Adjust zoom level as desired
     } else if (markerBounds.isValid()) {
         map.fitBounds(markerBounds);
+    } else {
+        console.log("No markers to center on.");
     }
 }
 
@@ -126,5 +170,139 @@ function updateCommoditySelect() {
     });
 }
 
-// Helper functions for stations, markers, and data persistence remain as before
-// These include addDeploymentStation, addCommodityType, addCommodity, and data persistence functions
+// Function to add a deployment station without saving the marker
+function addDeploymentStation() {
+    const stationName = document.getElementById('stationName').value;
+    const lat = parseFloat(document.getElementById('stationLat').value);
+    const lon = parseFloat(document.getElementById('stationLon').value);
+
+    if (!stationName || isNaN(lat) || isNaN(lon)) {
+        alert("Please provide valid station name and coordinates.");
+        return;
+    }
+
+    if (stations[stationName]) {
+        alert("A station with this name already exists.");
+        return;
+    }
+
+    stations[stationName] = { lat, lon, commodities: {} };
+
+    saveStations();
+    updateStationSelect();
+    updateStationList();
+    centerMapOnMarkers(); // Re-center after adding new station
+
+    document.getElementById('stationName').value = '';
+    document.getElementById('stationLat').value = '';
+    document.getElementById('stationLon').value = '';
+}
+
+// Function to save stations to localStorage
+function saveStations() {
+    const stationsToSave = {};
+
+    Object.keys(stations).forEach(stationName => {
+        const { lat, lon, commodities } = stations[stationName];
+        stationsToSave[stationName] = { lat, lon, commodities };
+    });
+
+    localStorage.setItem('stations', JSON.stringify(stationsToSave));
+}
+
+// Function to add a new commodity type
+function addCommodityType() {
+    const newType = document.getElementById('newCommodityType').value;
+    if (!newType) {
+        alert("Please enter a valid commodity type.");
+        return;
+    }
+
+    if (!commodityTypes.includes(newType)) {
+        commodityTypes.push(newType);
+        saveCommodityTypes();
+        updateCommoditySelect();
+    }
+
+    document.getElementById('newCommodityType').value = '';
+}
+
+// Function to save commodity types to localStorage
+function saveCommodityTypes() {
+    localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
+}
+
+// Function to add a commodity to a station
+function addCommodity() {
+    const stationName = document.getElementById('stationSelect').value;
+    const commodityType = document.getElementById('commoditySelect').value;
+    const quantity = parseInt(document.getElementById('commodityQuantity').value);
+
+    if (!stationName || !commodityType || isNaN(quantity)) {
+        alert("Please select a station and a commodity type, and provide a valid quantity.");
+        return;
+    }
+
+    stations[stationName].commodities[commodityType] = quantity;
+    saveStations();
+    addMarkerWithTooltip(stationName, stations[stationName].lat, stations[stationName].lon, stations[stationName].commodities);
+    updateStationList();
+    centerMapOnMarkers();
+
+    document.getElementById('commoditySelect').value = '';
+    document.getElementById('commodityQuantity').value = 1;
+}
+
+// Function to update station list display
+function updateStationList() {
+    const stationList = document.getElementById('stationList');
+    stationList.innerHTML = '';
+
+    for (const stationName in stations) {
+        const station = stations[stationName];
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `<b>${stationName}</b> (Lat: ${station.lat}, Lon: ${station.lon})`;
+
+        const commoditiesList = document.createElement('ul');
+        for (const commodity in station.commodities) {
+            const quantity = station.commodities[commodity];
+            const commodityItem = document.createElement('li');
+            commodityItem.innerHTML = `${commodity}: ${quantity}`;
+
+            const increaseButton = document.createElement('button');
+            increaseButton.textContent = "+";
+            increaseButton.onclick = () => changeQuantity(stationName, commodity, 1);
+
+            const decreaseButton = document.createElement('button');
+            decreaseButton.textContent = "-";
+            decreaseButton.onclick = () => changeQuantity(stationName, commodity, -1);
+
+            commodityItem.appendChild(increaseButton);
+            commodityItem.appendChild(decreaseButton);
+            commoditiesList.appendChild(commodityItem);
+        }
+
+        listItem.appendChild(commoditiesList);
+        stationList.appendChild(listItem);
+    }
+}
+
+// Function to change the quantity of a commodity
+function changeQuantity(stationName, commodity, amount) {
+    const newQuantity = (stations[stationName].commodities[commodity] || 0) + amount;
+
+    if (newQuantity >= 0) {
+        stations[stationName].commodities[commodity] = newQuantity;
+        saveStations();
+
+        addMarkerWithTooltip(
+            stationName,
+            stations[stationName].lat,
+            stations[stationName].lon,
+            stations[stationName].commodities
+        );
+
+        updateStationList();
+        centerMapOnMarkers();
+    }
+}
