@@ -182,4 +182,26 @@ function changeQuantity(stationName, commodity, amount) {
     if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
         stations[stationName].commodities[commodity] += amount;
         if (stations[stationName].commodities[commodity] < 0) {
-            stations[stationName].commodities[commodity]
+            stations[stationName].commodities[commodity] = 0;
+        }
+
+        saveStations();
+        updateStationList();
+    }
+}
+
+// Save and load stations and commodity types
+function saveStations() {
+    localStorage.setItem('stations', JSON.stringify(stations));
+}
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
+}
+function saveCommodityTypes() {
+    localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
+}
+function loadCommodityTypes() {
+    const savedTypes = localStorage.getItem('commodityTypes');
+    return savedTypes ? JSON.parse(savedTypes) : [];
+}
