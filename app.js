@@ -16,7 +16,6 @@ const adminPassword = 'password';
 // Data storage
 let stations = loadStations();
 let commodityTypes = loadCommodityTypes();
-let loggedIn = false;
 
 // Login function
 function login() {
@@ -24,8 +23,8 @@ function login() {
     const password = document.getElementById('password').value;
 
     if (username === adminUsername && password === adminPassword) {
-        loggedIn = true;
         localStorage.setItem('loggedIn', 'true');
+        console.log("Login successful.");
         window.location.href = 'dashboard.html';
     } else {
         document.getElementById('error-message').textContent = 'Incorrect username or password';
@@ -35,33 +34,38 @@ function login() {
 // Logout function
 function logout() {
     localStorage.removeItem('loggedIn');
+    console.log("User logged out.");
     window.location.href = 'index.html';
 }
 
 // Check if admin is logged in when loading dashboard
 if (window.location.pathname.includes('dashboard.html')) {
     if (!localStorage.getItem('loggedIn')) {
+        console.log("Redirecting to login page - user not logged in.");
         window.location.href = 'index.html';
     }
 }
 
-// Initialize map
+// Initialize map only if on the dashboard page and the map element exists
 let map;
-if (document.getElementById('map')) {
-    map = L.map('map').setView([20.5937, 78.9629], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+window.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById('map')) {
+        console.log("Initializing map...");
+        map = L.map('map').setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-    // Load and display saved stations on map
-    Object.keys(stations).forEach(stationName => {
-        const station = stations[stationName];
-        addMarkerToMap(stationName, station.lat, station.lon);
-    });
+        // Load saved stations onto map
+        Object.keys(stations).forEach(stationName => {
+            const station = stations[stationName];
+            addMarkerToMap(stationName, station.lat, station.lon);
+        });
 
-    updateStationSelect();
-    updateStationList();
-}
+        updateStationSelect();
+        updateStationList();
+    }
+});
 
 // Function to add a deployment station
 function addDeploymentStation() {
@@ -95,6 +99,7 @@ function addDeploymentStation() {
 function addMarkerToMap(stationName, lat, lon) {
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
     stations[stationName].marker = marker;
+    console.log("Marker added for station:", stationName, lat, lon);
 }
 
 // Function to update station dropdown
@@ -108,9 +113,10 @@ function updateStationSelect() {
         option.textContent = station;
         stationSelect.appendChild(option);
     }
+    console.log("Updated station dropdown:", Object.keys(stations));
 }
 
-// Function to add a commodity type
+// Additional functions for commodities and persistence
 function addCommodityType() {
     const newType = document.getElementById('newCommodityType').value;
     if (!newType) {
@@ -127,20 +133,6 @@ function addCommodityType() {
     document.getElementById('newCommodityType').value = '';
 }
 
-// Function to update commodity dropdown
-function updateCommoditySelect() {
-    const commoditySelect = document.getElementById('commoditySelect');
-    commoditySelect.innerHTML = '<option value="">Select Commodity</option>';
-
-    commodityTypes.forEach(type => {
-        const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type;
-        commoditySelect.appendChild(option);
-    });
-}
-
-// Function to add commodity to a station
 function addCommodity() {
     const stationName = document.getElementById('stationSelect').value;
     const commodityType = document.getElementById('commoditySelect').value;
@@ -163,33 +155,28 @@ function addCommodity() {
     document.getElementById('commodityQuantity').value = 1;
 }
 
-// Function to change the quantity of a commodity
-function changeQuantity(stationName, commodity, amount) {
-    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
-        stations[stationName].commodities[commodity] += amount;
-        if (stations[stationName].commodities[commodity] < 0) {
-            stations[stationName].commodities[commodity] = 0;
-        }
-
-        saveStations();
-        updateStationList();
-    }
-}
-
-// Save and load stations and commodity types
+// Persistence functions
 function saveStations() {
     localStorage.setItem('stations', JSON.stringify(stations));
+    console.log("Stations saved to localStorage:", stations);
 }
+
 function loadStations() {
     const savedStations = localStorage.getItem('stations');
-    return savedStations ? JSON.parse(savedStations) : {};
+    const loadedStations = savedStations ? JSON.parse(savedStations) : {};
+    console.log("Loaded stations from localStorage:", loadedStations);
+    return loadedStations;
 }
+
 function saveCommodityTypes() {
     localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
 }
+
 function loadCommodityTypes() {
     const savedTypes = localStorage.getItem('commodityTypes');
-    return savedTypes ? JSON.parse(savedTypes) : [];
+    const loadedTypes = savedTypes ? JSON.parse(savedTypes) : [];
+    console.log("Loaded commodity types from localStorage:", loadedTypes);
+    return loadedTypes;
 }
 
 // Function to update station list display
@@ -224,4 +211,5 @@ function updateStationList() {
         listItem.appendChild(commoditiesList);
         stationList.appendChild(listItem);
     }
+    console.log("Updated station list display.");
 }
