@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Location Map</title>
+    <title>Dynamic Resource Map</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
-    <h1>Dynamic Location Map</h1>
+    <h1>Dynamic Resource Map</h1>
 
-    <!-- Form to Add Location -->
+    <!-- Form to Add Resource Type and Quantity -->
     <div id="form-container">
-        <input type="text" id="locationName" placeholder="Location Name">
+        <input type="text" id="type" placeholder="Resource Type (e.g., Water)">
         <input type="number" id="latitude" placeholder="Latitude">
         <input type="number" id="longitude" placeholder="Longitude">
-        <button onclick="addLocation()">Add Location</button>
+        <input type="number" id="quantity" placeholder="Quantity" min="1" value="1">
+        <button onclick="addResource()">Add Resource</button>
     </div>
 
-    <!-- List to Display Added Locations -->
-    <ul id="locationList"></ul>
+    <!-- List to Display Added Resources -->
+    <ul id="resourceList"></ul>
 
     <!-- Map -->
     <div id="map"></div>
