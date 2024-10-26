@@ -260,4 +260,39 @@ function saveStations() {
     localStorage.setItem('stations', JSON.stringify(stationsToSave));
 }
 
-function loadStations()
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
+}
+
+// Persistence functions for commodity types
+function saveCommodityTypes() {
+    localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
+}
+
+function loadCommodityTypes() {
+    const savedTypes = localStorage.getItem('commodityTypes');
+    return savedTypes ? JSON.parse(savedTypes) : [];
+}
+
+// Initialize map only if on the dashboard page and the map element exists
+let map;
+window.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById('map')) {
+        map = L.map('map').setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Load saved stations and add markers for each station
+        Object.keys(stations).forEach(stationName => {
+            const station = stations[stationName];
+            addMarkerToMap(stationName, station.lat, station.lon, station.commodities);
+        });
+
+        updateStationSelect();
+        updateStationList();
+        updateCommoditySelect();
+        centerMapOnMarkers(); // Center map on initial markers
+    }
+});
