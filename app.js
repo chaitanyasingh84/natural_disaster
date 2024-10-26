@@ -14,6 +14,8 @@ function addResource() {
     const lon = parseFloat(document.getElementById('longitude').value);
     const quantity = parseInt(document.getElementById('quantity').value);
 
+    console.log(`Adding resource: Type=${type}, Lat=${lat}, Lon=${lon}, Quantity=${quantity}`);
+
     // Check for valid inputs
     if (!type || isNaN(lat) || isNaN(lon) || isNaN(quantity)) {
         alert("Please enter a valid resource type, coordinates, and quantity.");
@@ -23,6 +25,7 @@ function addResource() {
     // Check if resource already exists; if so, update quantity
     if (resources[type]) {
         resources[type].quantity += quantity;
+        console.log(`Updated existing resource: ${type} now has quantity ${resources[type].quantity}`);
         updateResourceList();
         return;
     }
@@ -30,6 +33,7 @@ function addResource() {
     // Create a new marker and store resource information
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`${type}: ${quantity}`);
     resources[type] = { marker, quantity, lat, lon };
+    console.log(`New resource added: ${type} with quantity ${quantity}`);
 
     // Update the list display
     updateResourceList();
@@ -37,6 +41,7 @@ function addResource() {
 
 // Function to update the resource list and display quantities
 function updateResourceList() {
+    console.log("Updating resource list...");
     const resourceList = document.getElementById('resourceList');
     resourceList.innerHTML = ''; // Clear the list
 
@@ -76,6 +81,8 @@ function changeQuantity(type, amount) {
             resources[type].quantity = 0;
         }
 
+        console.log(`Quantity for ${type} changed to ${resources[type].quantity}`);
+        
         // Update marker popup and the resource list
         resources[type].marker.setPopupContent(`${type}: ${resources[type].quantity}`);
         updateResourceList();
