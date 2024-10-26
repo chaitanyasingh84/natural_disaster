@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="app.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+
+<div id="login-container">
     <h2>Admin Login</h2>
-    <div id="login-container">
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button onclick="login()">Login</button>
+    <form onsubmit="login(); return false;">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter Username" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter Password" required />
+
+        <button type="submit">Login</button>
         <p id="error-message" style="color: red;"></p>
-    </div>
+    </form>
+</div>
 
-    <!-- Version Display -->
-    <footer>
-        <p id="versionDisplay">Version: <span id="versionNumber"></span></p>
-    </footer>
-
-    <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
