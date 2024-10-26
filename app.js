@@ -1,4 +1,4 @@
-// Define the version number
+\// Define the version number
 const version = "1.0.0";
 
 // Display the version number on the website
@@ -154,4 +154,74 @@ function addCommodity() {
     if (!stations[stationName].commodities[commodityType]) {
         stations[stationName].commodities[commodityType] = 0;
     }
-   
+    stations[stationName].commodities[commodityType] += quantity;
+
+    saveStations();
+    updateStationList();
+
+    document.getElementById('commoditySelect').value = '';
+    document.getElementById('commodityQuantity').value = 1;
+}
+
+// Function to change the quantity of a commodity
+function changeQuantity(stationName, commodity, amount) {
+    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
+        stations[stationName].commodities[commodity] += amount;
+        if (stations[stationName].commodities[commodity] < 0) {
+            stations[stationName].commodities[commodity] = 0;
+        }
+
+        saveStations();
+        updateStationList();
+    }
+}
+
+// Save and load stations and commodity types
+function saveStations() {
+    localStorage.setItem('stations', JSON.stringify(stations));
+}
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
+}
+function saveCommodityTypes() {
+    localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
+}
+function loadCommodityTypes() {
+    const savedTypes = localStorage.getItem('commodityTypes');
+    return savedTypes ? JSON.parse(savedTypes) : [];
+}
+
+// Function to update station list display
+function updateStationList() {
+    const stationList = document.getElementById('stationList');
+    stationList.innerHTML = '';
+
+    for (const stationName in stations) {
+        const station = stations[stationName];
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `<b>${stationName}</b> (Lat: ${station.lat}, Lon: ${station.lon})`;
+
+        const commoditiesList = document.createElement('ul');
+        for (const commodity in station.commodities) {
+            const commodityItem = document.createElement('li');
+            const quantity = station.commodities[commodity];
+            commodityItem.innerHTML = `${commodity}: ${quantity} `;
+
+            const increaseButton = document.createElement('button');
+            increaseButton.textContent = "+";
+            increaseButton.onclick = () => changeQuantity(stationName, commodity, 1);
+
+            const decreaseButton = document.createElement('button');
+            decreaseButton.textContent = "-";
+            decreaseButton.onclick = () => changeQuantity(stationName, commodity, -1);
+
+            commodityItem.appendChild(increaseButton);
+            commodityItem.appendChild(decreaseButton);
+            commoditiesList.appendChild(commodityItem);
+        }
+
+        listItem.appendChild(commoditiesList);
+        stationList.appendChild(listItem);
+    }
+}
