@@ -1,90 +1,125 @@
-// Initialize the map
-const map = L.map('map').setView([20.5937, 78.9629], 5); // Center on India
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+// Basic admin credentials
+const adminUsername = 'admin';
+const adminPassword = 'password';
 
-// Store resources in an object
-const resources = {};
+// Data storage
+const stations = {};
+let loggedIn = false;
 
-// Function to add a new resource
-function addResource() {
-    const type = document.getElementById('type').value;
-    const lat = parseFloat(document.getElementById('latitude').value);
-    const lon = parseFloat(document.getElementById('longitude').value);
-    const quantity = parseInt(document.getElementById('quantity').value);
+// Login function
+function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-    console.log(`Adding resource: Type=${type}, Lat=${lat}, Lon=${lon}, Quantity=${quantity}`);
-
-    // Check for valid inputs
-    if (!type || isNaN(lat) || isNaN(lon) || isNaN(quantity)) {
-        alert("Please enter a valid resource type, coordinates, and quantity.");
-        return;
+    if (username === adminUsername && password === adminPassword) {
+        loggedIn = true;
+        localStorage.setItem('loggedIn', 'true');
+        window.location.href = 'dashboard.html'; // Redirect to dashboard
+    } else {
+        document.getElementById('error-message').textContent = 'Incorrect username or password';
     }
-
-    // Check if resource already exists; if so, update quantity
-    if (resources[type]) {
-        resources[type].quantity += quantity;
-        console.log(`Updated existing resource: ${type} now has quantity ${resources[type].quantity}`);
-        updateResourceList();
-        return;
-    }
-
-    // Create a new marker and store resource information
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`${type}: ${quantity}`);
-    resources[type] = { marker, quantity, lat, lon };
-    console.log(`New resource added: ${type} with quantity ${quantity}`);
-
-    // Update the list display
-    updateResourceList();
 }
 
-// Function to update the resource list and display quantities
-function updateResourceList() {
-    console.log("Updating resource list...");
-    const resourceList = document.getElementById('resourceList');
-    resourceList.innerHTML = ''; // Clear the list
+// Logout function
+function logout() {
+    localStorage.removeItem('loggedIn');
+    window.location.href = 'index.html'; // Redirect to login page
+}
 
-    // Populate the list with current resources
-    for (const type in resources) {
-        const resource = resources[type];
+// Check if admin is logged in when loading dashboard
+if (window.location.pathname.includes('dashboard.html')) {
+    if (!localStorage.getItem('loggedIn')) {
+        window.location.href = 'index.html'; // Redirect to login if not logged in
+    }
+}
+
+// Initialize map
+let map;
+if (document.getElementById('map')) {
+    map = L.map('map').setView([20.5937, 78.9629], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+}
+
+// Function to add a deployment station
+function addDeploymentStation() {
+    const stationName = document.getElementById('stationName').value;
+    const lat = parseFloat(document.getElementById('stationLat').value);
+    const lon = parseFloat(document.getElementById('stationLon').value);
+
+    if (!stationName || isNaN(lat) || isNaN(lon)) {
+        alert("Please provide valid station name and coordinates.");
+        return;
+    }
+
+    // Add to stations object
+    stations[stationName] = { lat, lon, commodities: {} };
+
+    // Add marker to map
+    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
+    stations[stationName].marker = marker;
+
+    updateStationList();
+    updateStationSelect();
+
+    document.getElementById('stationName').value = '';
+    document.getElementById('stationLat').value = '';
+    document.getElementById('stationLon').value = '';
+}
+
+// Function to update station select dropdown
+function updateStationSelect() {
+    const stationSelect = document.getElementById('stationSelect');
+    stationSelect.innerHTML = '<option value="">Select Station</option>';
+
+    for (const station in stations) {
+        const option = document.createElement('option');
+        option.value = station;
+        option.textContent = station;
+        stationSelect.appendChild(option);
+    }
+}
+
+// Function to add a commodity to a selected station
+function addCommodity() {
+    const stationName = document.getElementById('stationSelect').value;
+    const commodityType = document.getElementById('commodityType').value;
+    const quantity = parseInt(document.getElementById('commodityQuantity').value);
+
+    if (!stationName || !commodityType || isNaN(quantity)) {
+        alert("Please select a station, and provide valid commodity type and quantity.");
+        return;
+    }
+
+    if (!stations[stationName].commodities[commodityType]) {
+        stations[stationName].commodities[commodityType] = 0;
+    }
+    stations[stationName].commodities[commodityType] += quantity;
+
+    updateStationList();
+    document.getElementById('commodityType').value = '';
+    document.getElementById('commodityQuantity').value = 1;
+}
+
+// Function to update the station list display
+function updateStationList() {
+    const stationList = document.getElementById('stationList');
+    stationList.innerHTML = '';
+
+    for (const stationName in stations) {
+        const station = stations[stationName];
         const listItem = document.createElement('li');
-        listItem.textContent = `${type} - Quantity: ${resource.quantity} `;
+        listItem.innerHTML = `<b>${stationName}</b> (Lat: ${station.lat}, Lon: ${station.lon})`;
 
-        // Increase Quantity Button
-        const increaseButton = document.createElement('button');
-        increaseButton.textContent = "+";
-        increaseButton.onclick = () => changeQuantity(type, 1);
-
-        // Decrease Quantity Button
-        const decreaseButton = document.createElement('button');
-        decreaseButton.textContent = "-";
-        decreaseButton.onclick = () => changeQuantity(type, -1);
-
-        // Append buttons to list item
-        listItem.appendChild(increaseButton);
-        listItem.appendChild(decreaseButton);
-        resourceList.appendChild(listItem);
-
-        // Update marker popup with new quantity
-        resource.marker.setPopupContent(`${type}: ${resource.quantity}`);
-    }
-}
-
-// Function to change the quantity of a resource
-function changeQuantity(type, amount) {
-    if (resources[type]) {
-        resources[type].quantity += amount;
-
-        // Prevent quantity from going below 0
-        if (resources[type].quantity < 0) {
-            resources[type].quantity = 0;
+        const commoditiesList = document.createElement('ul');
+        for (const commodity in station.commodities) {
+            const commodityItem = document.createElement('li');
+            commodityItem.textContent = `${commodity}: ${station.commodities[commodity]}`;
+            commoditiesList.appendChild(commodityItem);
         }
 
-        console.log(`Quantity for ${type} changed to ${resources[type].quantity}`);
-        
-        // Update marker popup and the resource list
-        resources[type].marker.setPopupContent(`${type}: ${resources[type].quantity}`);
-        updateResourceList();
+        listItem.appendChild(commoditiesList);
+        stationList.appendChild(listItem);
     }
 }
