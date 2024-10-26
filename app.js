@@ -3,7 +3,7 @@ const adminUsername = 'admin';
 const adminPassword = 'password';
 
 // Data storage
-const stations = {};
+let stations = loadStations(); // Load stations from localStorage on page load
 let loggedIn = false;
 
 // Login function
@@ -40,6 +40,15 @@ if (document.getElementById('map')) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    // Load existing station markers on map
+    Object.keys(stations).forEach(stationName => {
+        const station = stations[stationName];
+        station.marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`Station: ${stationName}`);
+    });
+
+    updateStationSelect();
+    updateStationList();
 }
 
 // Function to add a deployment station
@@ -60,9 +69,11 @@ function addDeploymentStation() {
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
     stations[stationName].marker = marker;
 
-    updateStationList();
+    saveStations();
     updateStationSelect();
+    updateStationList();
 
+    // Clear input fields
     document.getElementById('stationName').value = '';
     document.getElementById('stationLat').value = '';
     document.getElementById('stationLon').value = '';
@@ -92,12 +103,16 @@ function addCommodity() {
         return;
     }
 
+    // Initialize commodity quantity if not present, then add quantity
     if (!stations[stationName].commodities[commodityType]) {
         stations[stationName].commodities[commodityType] = 0;
     }
     stations[stationName].commodities[commodityType] += quantity;
 
+    saveStations();
     updateStationList();
+
+    // Clear commodity input fields
     document.getElementById('commodityType').value = '';
     document.getElementById('commodityQuantity').value = 1;
 }
@@ -115,11 +130,49 @@ function updateStationList() {
         const commoditiesList = document.createElement('ul');
         for (const commodity in station.commodities) {
             const commodityItem = document.createElement('li');
-            commodityItem.textContent = `${commodity}: ${station.commodities[commodity]}`;
+            const quantity = station.commodities[commodity];
+            commodityItem.innerHTML = `${commodity}: ${quantity} `;
+
+            // Increase quantity button
+            const increaseButton = document.createElement('button');
+            increaseButton.textContent = "+";
+            increaseButton.onclick = () => changeQuantity(stationName, commodity, 1);
+
+            // Decrease quantity button
+            const decreaseButton = document.createElement('button');
+            decreaseButton.textContent = "-";
+            decreaseButton.onclick = () => changeQuantity(stationName, commodity, -1);
+
+            commodityItem.appendChild(increaseButton);
+            commodityItem.appendChild(decreaseButton);
             commoditiesList.appendChild(commodityItem);
         }
 
         listItem.appendChild(commoditiesList);
         stationList.appendChild(listItem);
     }
+}
+
+// Function to change the quantity of a commodity at a specific station
+function changeQuantity(stationName, commodity, amount) {
+    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
+        stations[stationName].commodities[commodity] += amount;
+        if (stations[stationName].commodities[commodity] < 0) {
+            stations[stationName].commodities[commodity] = 0; // Prevent negative quantities
+        }
+
+        saveStations();
+        updateStationList();
+    }
+}
+
+// Save stations to localStorage
+function saveStations() {
+    localStorage.setItem('stations', JSON.stringify(stations));
+}
+
+// Load stations from localStorage
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
 }
