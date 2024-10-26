@@ -1,10 +1,10 @@
 // Initialize the map
-const map = L.map('map').setView([20.5937, 78.9629], 5);
+const map = L.map('map').setView([20.5937, 78.9629], 5); // Center on India
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Store resources with type as the key
+// Store resources in an object
 const resources = {};
 
 // Function to add a new resource
@@ -14,30 +14,31 @@ function addResource() {
     const lon = parseFloat(document.getElementById('longitude').value);
     const quantity = parseInt(document.getElementById('quantity').value);
 
+    // Check for valid inputs
     if (!type || isNaN(lat) || isNaN(lon) || isNaN(quantity)) {
-        alert("Please enter valid resource type, coordinates, and quantity.");
+        alert("Please enter a valid resource type, coordinates, and quantity.");
         return;
     }
 
-    // If the resource already exists, update quantity
+    // Check if resource already exists; if so, update quantity
     if (resources[type]) {
         resources[type].quantity += quantity;
         updateResourceList();
         return;
     }
 
-    // Create a new marker and store resource info
+    // Create a new marker and store resource information
     const marker = L.marker([lat, lon]).addTo(map).bindPopup(`${type}: ${quantity}`);
-    resources[type] = { marker, quantity };
+    resources[type] = { marker, quantity, lat, lon };
 
-    // Update the resource list
+    // Update the list display
     updateResourceList();
 }
 
-// Function to update the list display and quantities
+// Function to update the resource list and display quantities
 function updateResourceList() {
     const resourceList = document.getElementById('resourceList');
-    resourceList.innerHTML = ''; // Clear previous list
+    resourceList.innerHTML = ''; // Clear the list
 
     // Populate the list with current resources
     for (const type in resources) {
@@ -55,7 +56,7 @@ function updateResourceList() {
         decreaseButton.textContent = "-";
         decreaseButton.onclick = () => changeQuantity(type, -1);
 
-        // Add buttons to the list item
+        // Append buttons to list item
         listItem.appendChild(increaseButton);
         listItem.appendChild(decreaseButton);
         resourceList.appendChild(listItem);
@@ -75,7 +76,7 @@ function changeQuantity(type, amount) {
             resources[type].quantity = 0;
         }
 
-        // Update the marker popup and the resource list display
+        // Update marker popup and the resource list
         resources[type].marker.setPopupContent(`${type}: ${resources[type].quantity}`);
         updateResourceList();
     }
