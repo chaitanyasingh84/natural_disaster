@@ -42,14 +42,14 @@ if (document.getElementById('map')) {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Load and display saved stations
+    // Load and display saved stations on map
     Object.keys(stations).forEach(stationName => {
         const station = stations[stationName];
-        station.marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`Station: ${stationName}`);
+        addMarkerToMap(stationName, station.lat, station.lon);
     });
 
-    updateStationSelect(); // Update dropdown with stations
-    updateStationList();   // Update list with stations and commodities
+    updateStationSelect();
+    updateStationList();
 }
 
 // Function to add a deployment station
@@ -63,22 +63,34 @@ function addDeploymentStation() {
         return;
     }
 
-    // Add to stations object
+    // Check if station already exists
+    if (stations[stationName]) {
+        alert("A station with this name already exists.");
+        return;
+    }
+
+    // Add new station to stations object
     stations[stationName] = { lat, lon, commodities: {} };
-    console.log("Station added:", stations);
+    console.log("Station added:", stationName, stations[stationName]);
 
     // Add marker to map
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
-    stations[stationName].marker = marker;
+    addMarkerToMap(stationName, lat, lon);
 
     saveStations();
-    updateStationSelect(); // Update dropdown
-    updateStationList();   // Update station list display
+    updateStationSelect();
+    updateStationList();
 
     // Clear input fields
     document.getElementById('stationName').value = '';
     document.getElementById('stationLat').value = '';
     document.getElementById('stationLon').value = '';
+}
+
+// Helper function to add a marker to the map
+function addMarkerToMap(stationName, lat, lon) {
+    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
+    stations[stationName].marker = marker;
+    console.log("Marker added to map:", stationName, lat, lon);
 }
 
 // Function to update station dropdown
@@ -92,7 +104,7 @@ function updateStationSelect() {
         option.textContent = station;
         stationSelect.appendChild(option);
     }
-    console.log("Updated station dropdown:", stationSelect);
+    console.log("Station dropdown updated:", Object.keys(stations));
 }
 
 // Function to update station list display
@@ -127,7 +139,7 @@ function updateStationList() {
         listItem.appendChild(commoditiesList);
         stationList.appendChild(listItem);
     }
-    console.log("Updated station list:", stationList);
+    console.log("Station list updated:", Object.keys(stations));
 }
 
 // Function to add a commodity to a selected station
@@ -141,6 +153,7 @@ function addCommodity() {
         return;
     }
 
+    // Add or update the commodity quantity
     if (!stations[stationName].commodities[commodityType]) {
         stations[stationName].commodities[commodityType] = 0;
     }
@@ -153,7 +166,7 @@ function addCommodity() {
     document.getElementById('commodityQuantity').value = 1;
 }
 
-// Adjust commodity quantity
+// Function to change the quantity of a commodity at a specific station
 function changeQuantity(stationName, commodity, amount) {
     if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
         stations[stationName].commodities[commodity] += amount;
@@ -166,17 +179,23 @@ function changeQuantity(stationName, commodity, amount) {
     }
 }
 
-// Save and load stations and commodity types
+// Save and load stations
 function saveStations() {
     localStorage.setItem('stations', JSON.stringify(stations));
+    console.log("Stations saved to localStorage:", stations);
 }
+
 function loadStations() {
     const savedStations = localStorage.getItem('stations');
+    console.log("Loaded stations from localStorage:", savedStations);
     return savedStations ? JSON.parse(savedStations) : {};
 }
+
+// Save and load commodity types
 function saveCommodityTypes() {
     localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
 }
+
 function loadCommodityTypes() {
     const savedTypes = localStorage.getItem('commodityTypes');
     return savedTypes ? JSON.parse(savedTypes) : [];
