@@ -1,5 +1,5 @@
 // Define the version number
-const version = "2.0.0";
+const version = "1.0.0";
 
 // Display the version number on the website when the page loads
 window.onload = function () {
@@ -144,17 +144,17 @@ function formatCommoditiesTooltip(commodities) {
         .join("");
 }
 
-// Function to update commodity dropdown
-function updateCommoditySelect() {
-    const commoditySelect = document.getElementById('commoditySelect');
-    commoditySelect.innerHTML = '<option value="">Select Commodity</option>';
+// Function to update station dropdown
+function updateStationSelect() {
+    const stationSelect = document.getElementById('stationSelect');
+    stationSelect.innerHTML = '<option value="">Select Station</option>';
 
-    commodityTypes.forEach(type => {
+    for (const station in stations) {
         const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type;
-        commoditySelect.appendChild(option);
-    });
+        option.value = station;
+        option.textContent = station;
+        stationSelect.appendChild(option);
+    }
 }
 
 // Function to add a deployment station without saving the marker
