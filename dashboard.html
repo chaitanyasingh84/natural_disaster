@@ -20,13 +20,22 @@
         <button onclick="addDeploymentStation()">Add Station</button>
     </div>
 
+    <!-- Commodity Type Form -->
+    <div id="commodity-type-form">
+        <h3>Add Commodity Type</h3>
+        <input type="text" id="newCommodityType" placeholder="Commodity Type" required>
+        <button onclick="addCommodityType()">Add Commodity Type</button>
+    </div>
+
     <!-- Commodity Form -->
     <div id="commodity-form">
         <h3>Add Commodity to Deployment Station</h3>
         <select id="stationSelect">
             <option value="">Select Station</option>
         </select>
-        <input type="text" id="commodityType" placeholder="Commodity Type" required>
+        <select id="commoditySelect">
+            <option value="">Select Commodity</option>
+        </select>
         <input type="number" id="commodityQuantity" placeholder="Quantity" min="1" value="1" required>
         <button onclick="addCommodity()">Add Commodity</button>
     </div>
