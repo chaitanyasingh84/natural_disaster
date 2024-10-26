@@ -1,4 +1,4 @@
-\// Define the version number
+// Define the version number
 const version = "1.0.0";
 
 // Display the version number on the website
