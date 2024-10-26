@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.0.0";
+const version = "1.0.1";
 
 // Display the version number on the website when the page loads
 window.onload = function () {
@@ -97,7 +97,7 @@ function addMarkerToMap(stationName, lat, lon, commodities) {
             iconSize: [20, 20]
         });
 
-        const tooltipContent = formatCommoditiesTooltip(commodities);
+        const tooltipContent = formatCommoditiesTooltip(stationName, commodities);
 
         const marker = L.marker([lat, lon], { icon })
             .addTo(map)
@@ -109,9 +109,10 @@ function addMarkerToMap(stationName, lat, lon, commodities) {
     centerMapOnMarkers(); // Re-center map on markers after each update
 }
 
-// Helper function to format commodities for the tooltip
-function formatCommoditiesTooltip(commodities) {
-    return Object.entries(commodities)
+// Helper function to format commodities for the tooltip, including the station name
+function formatCommoditiesTooltip(stationName, commodities) {
+    let tooltipContent = `<b>${stationName}</b><br>`;
+    tooltipContent += Object.entries(commodities)
         .map(([commodity, quantity]) => {
             const color = getColorForCommodity(commodity);
             return `<div style="display: flex; align-items: center;">
@@ -120,6 +121,7 @@ function formatCommoditiesTooltip(commodities) {
                     </div>`;
         })
         .join("");
+    return tooltipContent;
 }
 
 // Function to add a deployment station without saving the marker
