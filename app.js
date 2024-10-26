@@ -37,53 +37,31 @@ function getColorForCommodity(commodity) {
     return commodityColors[commodity];
 }
 
-// Login function
-function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+// Function to update station dropdown
+function updateStationSelect() {
+    const stationSelect = document.getElementById('stationSelect');
+    stationSelect.innerHTML = '<option value="">Select Station</option>';
 
-    if (username === adminUsername && password === adminPassword) {
-        localStorage.setItem('loggedIn', 'true');
-        window.location.href = 'dashboard.html';
-    } else {
-        document.getElementById('error-message').textContent = 'Incorrect username or password';
+    for (const station in stations) {
+        const option = document.createElement('option');
+        option.value = station;
+        option.textContent = station;
+        stationSelect.appendChild(option);
     }
 }
 
-// Logout function
-function logout() {
-    localStorage.removeItem('loggedIn');
-    window.location.href = 'index.html';
+// Function to update commodity dropdown
+function updateCommoditySelect() {
+    const commoditySelect = document.getElementById('commoditySelect');
+    commoditySelect.innerHTML = '<option value="">Select Commodity</option>';
+
+    commodityTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        commoditySelect.appendChild(option);
+    });
 }
-
-// Check if admin is logged in when loading dashboard
-if (window.location.pathname.includes('dashboard.html')) {
-    if (!localStorage.getItem('loggedIn')) {
-        window.location.href = 'index.html';
-    }
-}
-
-// Initialize map only if on the dashboard page and the map element exists
-let map;
-window.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById('map')) {
-        map = L.map('map').setView([20.5937, 78.9629], 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Load saved stations and add markers for each station
-        Object.keys(stations).forEach(stationName => {
-            const station = stations[stationName];
-            addMarkerToMap(stationName, station.lat, station.lon, station.commodities);
-        });
-
-        updateStationSelect();
-        updateStationList();
-        updateCommoditySelect();
-        centerMapOnMarkers(); // Center map on initial markers
-    }
-});
 
 // Function to center the map based on the bounds of all markers
 function centerMapOnMarkers() {
@@ -142,19 +120,6 @@ function formatCommoditiesTooltip(commodities) {
                     </div>`;
         })
         .join("");
-}
-
-// Function to update station dropdown
-function updateStationSelect() {
-    const stationSelect = document.getElementById('stationSelect');
-    stationSelect.innerHTML = '<option value="">Select Station</option>';
-
-    for (const station in stations) {
-        const option = document.createElement('option');
-        option.value = station;
-        option.textContent = station;
-        stationSelect.appendChild(option);
-    }
 }
 
 // Function to add a deployment station without saving the marker
@@ -221,16 +186,6 @@ function addCommodity() {
 
     document.getElementById('commoditySelect').value = '';
     document.getElementById('commodityQuantity').value = 1;
-}
-
-// Persistence functions for commodity types
-function saveCommodityTypes() {
-    localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
-}
-
-function loadCommodityTypes() {
-    const savedTypes = localStorage.getItem('commodityTypes');
-    return savedTypes ? JSON.parse(savedTypes) : [];
 }
 
 // Function to update station list display
@@ -305,7 +260,4 @@ function saveStations() {
     localStorage.setItem('stations', JSON.stringify(stationsToSave));
 }
 
-function loadStations() {
-    const savedStations = localStorage.getItem('stations');
-    return savedStations ? JSON.parse(savedStations) : {};
-}
+function loadStations()
