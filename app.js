@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.99.0";
+const version = "2.0.0";
 
 // Display the version number on the website when the page loads
 window.onload = function () {
