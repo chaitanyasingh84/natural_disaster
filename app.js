@@ -1,3 +1,14 @@
+// Define the version number
+const version = "1.0.0";
+
+// Display the version number on the website
+window.onload = function () {
+    const versionDisplay = document.getElementById('versionNumber');
+    if (versionDisplay) {
+        versionDisplay.textContent = version;
+    }
+};
+
 // Basic admin credentials
 const adminUsername = 'admin';
 const adminPassword = 'password';
@@ -42,13 +53,13 @@ if (document.getElementById('map')) {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // Load and display saved stations on map
     Object.keys(stations).forEach(stationName => {
         const station = stations[stationName];
-        station.marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`Station: ${stationName}`);
+        addMarkerToMap(stationName, station.lat, station.lon);
     });
 
     updateStationSelect();
-    updateCommoditySelect();
     updateStationList();
 }
 
@@ -63,10 +74,13 @@ function addDeploymentStation() {
         return;
     }
 
-    stations[stationName] = { lat, lon, commodities: {} };
+    if (stations[stationName]) {
+        alert("A station with this name already exists.");
+        return;
+    }
 
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
-    stations[stationName].marker = marker;
+    stations[stationName] = { lat, lon, commodities: {} };
+    addMarkerToMap(stationName, lat, lon);
 
     saveStations();
     updateStationSelect();
@@ -77,7 +91,26 @@ function addDeploymentStation() {
     document.getElementById('stationLon').value = '';
 }
 
-// Function to add a new commodity type
+// Helper function to add a marker to the map
+function addMarkerToMap(stationName, lat, lon) {
+    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
+    stations[stationName].marker = marker;
+}
+
+// Function to update station dropdown
+function updateStationSelect() {
+    const stationSelect = document.getElementById('stationSelect');
+    stationSelect.innerHTML = '<option value="">Select Station</option>';
+
+    for (const station in stations) {
+        const option = document.createElement('option');
+        option.value = station;
+        option.textContent = station;
+        stationSelect.appendChild(option);
+    }
+}
+
+// Function to add a commodity type
 function addCommodityType() {
     const newType = document.getElementById('newCommodityType').value;
     if (!newType) {
@@ -92,19 +125,6 @@ function addCommodityType() {
     }
 
     document.getElementById('newCommodityType').value = '';
-}
-
-// Function to update station dropdown
-function updateStationSelect() {
-    const stationSelect = document.getElementById('stationSelect');
-    stationSelect.innerHTML = '<option value="">Select Station</option>';
-
-    for (const station in stations) {
-        const option = document.createElement('option');
-        option.value = station;
-        option.textContent = station;
-        stationSelect.appendChild(option);
-    }
 }
 
 // Function to update commodity dropdown
@@ -143,7 +163,36 @@ function addCommodity() {
     document.getElementById('commodityQuantity').value = 1;
 }
 
-// Update station list display
+// Function to change the quantity of a commodity
+function changeQuantity(stationName, commodity, amount) {
+    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
+        stations[stationName].commodities[commodity] += amount;
+        if (stations[stationName].commodities[commodity] < 0) {
+            stations[stationName].commodities[commodity] = 0;
+        }
+
+        saveStations();
+        updateStationList();
+    }
+}
+
+// Save and load stations and commodity types
+function saveStations() {
+    localStorage.setItem('stations', JSON.stringify(stations));
+}
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
+}
+function saveCommodityTypes() {
+    localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
+}
+function loadCommodityTypes() {
+    const savedTypes = localStorage.getItem('commodityTypes');
+    return savedTypes ? JSON.parse(savedTypes) : [];
+}
+
+// Function to update station list display
 function updateStationList() {
     const stationList = document.getElementById('stationList');
     stationList.innerHTML = '';
@@ -176,10 +225,3 @@ function updateStationList() {
         stationList.appendChild(listItem);
     }
 }
-
-// Adjust commodity quantity
-function changeQuantity(stationName, commodity, amount) {
-    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
-        stations[stationName].commodities[commodity] += amount;
-        if (stations[stationName].commodities[commodity] < 0) {
-            stations[stationName].commodities[commodity]
