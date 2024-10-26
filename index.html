@@ -3,28 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Location Map</title>
+    <title>Admin Login</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
-    <h1>Dynamic Location Map</h1>
-
-    <!-- Form to Add Location -->
-    <div id="form-container">
-        <input type="text" id="locationName" placeholder="Location Name">
-        <input type="number" id="latitude" placeholder="Latitude">
-        <input type="number" id="longitude" placeholder="Longitude">
-        <button onclick="addLocation()">Add Location</button>
+    <h2>Admin Login</h2>
+    <div id="login-container">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+        <p id="error-message" style="color: red;"></p>
     </div>
-
-    <!-- List to Display Added Locations -->
-    <ul id="locationList"></ul>
-
-    <!-- Map -->
-    <div id="map"></div>
-
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

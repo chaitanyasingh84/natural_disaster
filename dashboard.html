@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <h2>Admin Dashboard</h2>
+    <button onclick="logout()">Logout</button>
+
+    <!-- Deployment Station Form -->
+    <div id="deployment-form">
+        <h3>Add Deployment Station</h3>
+        <input type="text" id="stationName" placeholder="Station Name" required>
+        <input type="number" id="stationLat" placeholder="Latitude" required>
+        <input type="number" id="stationLon" placeholder="Longitude" required>
+        <button onclick="addDeploymentStation()">Add Station</button>
+    </div>
+
+    <!-- Commodity Type Form -->
+    <div id="commodity-type-form">
+        <h3>Add Commodity Type</h3>
+        <input type="text" id="newCommodityType" placeholder="Commodity Type" required>
+        <button onclick="addCommodityType()">Add Commodity Type</button>
+    </div>
+
+    <!-- Commodity Form -->
+    <div id="commodity-form">
+        <h3>Add Commodity to Deployment Station</h3>
+        <select id="stationSelect">
+            <option value="">Select Station</option>
+        </select>
+        <select id="commoditySelect">
+            <option value="">Select Commodity</option>
+        </select>
+        <input type="number" id="commodityQuantity" placeholder="Quantity" min="1" value="1" required>
+        <button onclick="addCommodity()">Add Commodity</button>
+    </div>
+
+    <!-- Map to show deployment stations -->
+    <div id="map"></div>
+
+    <!-- List of deployment stations and commodities -->
+    <ul id="stationList"></ul>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

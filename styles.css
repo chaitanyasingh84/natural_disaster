@@ -3,8 +3,16 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     background-color: #f0f0f0;
+}
+
+h1 {
+    margin: 20px;
+    font-size: 24px;
+}
+
+#form-container {
+    margin: 20px;
 }
 
 #map {
@@ -15,11 +23,7 @@ body {
     border: 1px solid #ccc;
 }
 
-#form-container {
-    margin: 20px;
-}
-
-#locationList {
+#resourceList {
     list-style-type: none;
     padding: 0;
     margin: 20px;
