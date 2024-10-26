@@ -1,6 +1,24 @@
 // Basic admin credentials
 const adminUsername = 'admin';
 const adminPassword = 'password';
+const version = "1.0.0";
+
+// Display the version number on the website
+window.onload = function () {
+    const versionDisplay = document.getElementById('versionNumber');
+    if (versionDisplay) {
+        versionDisplay.textContent = version;
+    }
+};
+
+// Basic admin credentials
+const adminUsername = 'admin';
+const adminPassword = 'password';
+
+// Data storage
+let stations = loadStations(); // Load stations from localStorage on page load
+let commodityTypes = loadCommodityTypes(); // Load commodity types from localStorage
+let loggedIn = false;
 
 // Data storage
 let stations = loadStations(); // Load stations from localStorage on page load
