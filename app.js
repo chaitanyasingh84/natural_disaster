@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.0.0";
+const version = "1.1.0";
 
 // Display the version number on the website
 window.onload = function () {
@@ -67,7 +67,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Function to add a deployment station
+// Function to add a deployment station without saving the marker
 function addDeploymentStation() {
     const stationName = document.getElementById('stationName').value;
     const lat = parseFloat(document.getElementById('stationLat').value);
@@ -83,13 +83,15 @@ function addDeploymentStation() {
         return;
     }
 
+    // Store only relevant properties in stations object
     stations[stationName] = { lat, lon, commodities: {} };
     addMarkerToMap(stationName, lat, lon);
 
-    saveStations();
+    saveStations(); // Save without markers
     updateStationSelect();
     updateStationList();
 
+    // Clear input fields
     document.getElementById('stationName').value = '';
     document.getElementById('stationLat').value = '';
     document.getElementById('stationLon').value = '';
@@ -119,10 +121,12 @@ function updateStationSelect() {
 // Modified saveStations function to exclude markers
 function saveStations() {
     const stationsToSave = {};
+
     Object.keys(stations).forEach(stationName => {
         const { lat, lon, commodities } = stations[stationName];
-        stationsToSave[stationName] = { lat, lon, commodities }; // Exclude marker
+        stationsToSave[stationName] = { lat, lon, commodities }; // Only save these properties
     });
+
     localStorage.setItem('stations', JSON.stringify(stationsToSave));
     console.log("Stations saved to localStorage:", stationsToSave);
 }
@@ -219,4 +223,17 @@ function updateStationList() {
         stationList.appendChild(listItem);
     }
     console.log("Updated station list display.");
+}
+
+// Function to change the quantity of a commodity
+function changeQuantity(stationName, commodity, amount) {
+    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
+        stations[stationName].commodities[commodity] += amount;
+        if (stations[stationName].commodities[commodity] < 0) {
+            stations[stationName].commodities[commodity] = 0;
+        }
+
+        saveStations();
+        updateStationList();
+    }
 }
