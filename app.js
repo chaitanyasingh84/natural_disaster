@@ -1,5 +1,5 @@
 // Define the version number
-const version = "1.0.0";
+const version = "1.3.0";
 
 // Display the version number on the website
 window.onload = function () {
@@ -16,6 +16,7 @@ const adminPassword = 'password';
 // Data storage
 let stations = loadStations();
 let commodityTypes = loadCommodityTypes();
+let markers = {}; // Store markers for each station and commodity
 
 // Login function
 function login() {
@@ -56,17 +57,36 @@ window.addEventListener("DOMContentLoaded", () => {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Load saved stations onto map
+        // Load saved stations and add markers for each commodity
         Object.keys(stations).forEach(stationName => {
             const station = stations[stationName];
-            addMarkerToMap(stationName, station.lat, station.lon);
+            Object.keys(station.commodities).forEach(commodity => {
+                if (station.commodities[commodity] > 0) {
+                    addMarkerToMap(stationName, station.lat, station.lon, commodity, station.commodities[commodity]);
+                }
+            });
         });
 
         updateStationSelect();
         updateStationList();
-        updateCommoditySelect(); // Update commodity dropdown on page load
+        updateCommoditySelect();
+        centerMapOnMarkers(); // Center map on initial markers
     }
 });
+
+// Function to center the map based on the bounds of all markers
+function centerMapOnMarkers() {
+    const markerBounds = L.latLngBounds([]);
+    Object.values(markers).forEach(marker => {
+        markerBounds.extend(marker.getLatLng());
+    });
+
+    if (markerBounds.isValid()) {
+        map.fitBounds(markerBounds);
+    } else {
+        console.log("No markers to center on.");
+    }
+}
 
 // Function to update commodity dropdown
 function updateCommoditySelect() {
@@ -100,11 +120,11 @@ function addDeploymentStation() {
 
     // Store only relevant properties in stations object
     stations[stationName] = { lat, lon, commodities: {} };
-    addMarkerToMap(stationName, lat, lon);
 
-    saveStations(); // Save without markers
+    saveStations();
     updateStationSelect();
     updateStationList();
+    centerMapOnMarkers(); // Re-center after adding new station
 
     // Clear input fields
     document.getElementById('stationName').value = '';
@@ -112,11 +132,24 @@ function addDeploymentStation() {
     document.getElementById('stationLon').value = '';
 }
 
-// Helper function to add a marker to the map
-function addMarkerToMap(stationName, lat, lon) {
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
-    stations[stationName].marker = marker; // Do not store marker in localStorage
-    console.log("Marker added for station:", stationName, lat, lon);
+// Helper function to add a marker to the map for each commodity
+function addMarkerToMap(stationName, lat, lon, commodity, quantity) {
+    const markerKey = `${stationName}_${commodity}`;
+
+    // Remove existing marker if it exists (to update popup)
+    if (markers[markerKey]) {
+        map.removeLayer(markers[markerKey]);
+    }
+
+    // Only add marker if quantity is greater than zero
+    if (quantity > 0) {
+        const marker = L.marker([lat, lon]).addTo(map).bindPopup(
+            `Station: ${stationName}<br>Commodity: ${commodity}<br>Quantity: ${quantity}`
+        );
+        markers[markerKey] = marker; // Save marker reference
+    }
+
+    centerMapOnMarkers(); // Re-center map on markers after each update
 }
 
 // Function to update station dropdown
@@ -165,7 +198,7 @@ function addCommodityType() {
     if (!commodityTypes.includes(newType)) {
         commodityTypes.push(newType);
         saveCommodityTypes();
-        updateCommoditySelect(); // Update dropdown after adding new commodity type
+        updateCommoditySelect();
     }
 
     document.getElementById('newCommodityType').value = '';
@@ -181,13 +214,12 @@ function addCommodity() {
         return;
     }
 
-    if (!stations[stationName].commodities[commodityType]) {
-        stations[stationName].commodities[commodityType] = 0;
-    }
-    stations[stationName].commodities[commodityType] += quantity;
-
+    // Update quantity and marker for commodity
+    stations[stationName].commodities[commodityType] = quantity;
     saveStations();
+    addMarkerToMap(stationName, stations[stationName].lat, stations[stationName].lon, commodityType, quantity);
     updateStationList();
+    centerMapOnMarkers(); // Re-center map after updating a commodity
 
     document.getElementById('commoditySelect').value = '';
     document.getElementById('commodityQuantity').value = 1;
@@ -217,9 +249,9 @@ function updateStationList() {
 
         const commoditiesList = document.createElement('ul');
         for (const commodity in station.commodities) {
-            const commodityItem = document.createElement('li');
             const quantity = station.commodities[commodity];
-            commodityItem.innerHTML = `${commodity}: ${quantity} `;
+            const commodityItem = document.createElement('li');
+            commodityItem.innerHTML = `${commodity}: ${quantity}`;
 
             const increaseButton = document.createElement('button');
             increaseButton.textContent = "+";
@@ -242,13 +274,22 @@ function updateStationList() {
 
 // Function to change the quantity of a commodity
 function changeQuantity(stationName, commodity, amount) {
-    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
-        stations[stationName].commodities[commodity] += amount;
-        if (stations[stationName].commodities[commodity] < 0) {
-            stations[stationName].commodities[commodity] = 0;
-        }
+    const newQuantity = (stations[stationName].commodities[commodity] || 0) + amount;
 
+    if (newQuantity >= 0) {
+        stations[stationName].commodities[commodity] = newQuantity;
         saveStations();
+
+        // Update marker
+        addMarkerToMap(
+            stationName,
+            stations[stationName].lat,
+            stations[stationName].lon,
+            commodity,
+            newQuantity
+        );
+
         updateStationList();
+        centerMapOnMarkers(); // Re-center map after updating a commodity
     }
 }
