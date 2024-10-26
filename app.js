@@ -4,58 +4,79 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Store markers in an object for easy reference
-const markers = {};
+// Store resources with type as the key
+const resources = {};
 
-// Function to add a location
-function addLocation() {
-    const name = document.getElementById('locationName').value;
+// Function to add a new resource
+function addResource() {
+    const type = document.getElementById('type').value;
     const lat = parseFloat(document.getElementById('latitude').value);
     const lon = parseFloat(document.getElementById('longitude').value);
+    const quantity = parseInt(document.getElementById('quantity').value);
 
-    if (!name || isNaN(lat) || isNaN(lon)) {
-        alert("Please enter valid location name and coordinates.");
+    if (!type || isNaN(lat) || isNaN(lon) || isNaN(quantity)) {
+        alert("Please enter valid resource type, coordinates, and quantity.");
         return;
     }
 
-    // Create a new marker
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(name);
+    // If the resource already exists, update quantity
+    if (resources[type]) {
+        resources[type].quantity += quantity;
+        updateResourceList();
+        return;
+    }
 
-    // Add marker to the markers object with a unique id (e.g., location name)
-    markers[name] = marker;
+    // Create a new marker and store resource info
+    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`${type}: ${quantity}`);
+    resources[type] = { marker, quantity };
 
-    // Update the list display
-    updateLocationList();
+    // Update the resource list
+    updateResourceList();
 }
 
-// Function to update the location list and add delete options
-function updateLocationList() {
-    const locationList = document.getElementById('locationList');
-    locationList.innerHTML = ''; // Clear previous list
+// Function to update the list display and quantities
+function updateResourceList() {
+    const resourceList = document.getElementById('resourceList');
+    resourceList.innerHTML = ''; // Clear previous list
 
-    // Populate the list with current markers
-    for (const name in markers) {
+    // Populate the list with current resources
+    for (const type in resources) {
+        const resource = resources[type];
         const listItem = document.createElement('li');
-        listItem.textContent = name;
+        listItem.textContent = `${type} - Quantity: ${resource.quantity} `;
 
-        // Add a delete button for each marker
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = "Delete";
-        deleteButton.onclick = () => removeLocation(name);
+        // Increase Quantity Button
+        const increaseButton = document.createElement('button');
+        increaseButton.textContent = "+";
+        increaseButton.onclick = () => changeQuantity(type, 1);
 
-        listItem.appendChild(deleteButton);
-        locationList.appendChild(listItem);
+        // Decrease Quantity Button
+        const decreaseButton = document.createElement('button');
+        decreaseButton.textContent = "-";
+        decreaseButton.onclick = () => changeQuantity(type, -1);
+
+        // Add buttons to the list item
+        listItem.appendChild(increaseButton);
+        listItem.appendChild(decreaseButton);
+        resourceList.appendChild(listItem);
+
+        // Update marker popup with new quantity
+        resource.marker.setPopupContent(`${type}: ${resource.quantity}`);
     }
 }
 
-// Function to remove a location
-function removeLocation(name) {
-    if (markers[name]) {
-        // Remove the marker from the map
-        map.removeLayer(markers[name]);
-        delete markers[name]; // Remove the marker from the markers object
+// Function to change the quantity of a resource
+function changeQuantity(type, amount) {
+    if (resources[type]) {
+        resources[type].quantity += amount;
 
-        // Update the list display
-        updateLocationList();
+        // Prevent quantity from going below 0
+        if (resources[type].quantity < 0) {
+            resources[type].quantity = 0;
+        }
+
+        // Update the marker popup and the resource list display
+        resources[type].marker.setPopupContent(`${type}: ${resources[type].quantity}`);
+        updateResourceList();
     }
 }
