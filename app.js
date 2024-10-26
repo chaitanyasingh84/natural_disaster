@@ -16,6 +16,7 @@ const adminPassword = 'password';
 // Data storage
 let stations = loadStations();
 let commodityTypes = loadCommodityTypes();
+let markers = {}; // Store markers for each station and commodity
 
 // Login function
 function login() {
@@ -56,10 +57,14 @@ window.addEventListener("DOMContentLoaded", () => {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Load saved stations onto map
+        // Load saved stations and add markers for each commodity
         Object.keys(stations).forEach(stationName => {
             const station = stations[stationName];
-            addMarkerToMap(stationName, station.lat, station.lon);
+            Object.keys(station.commodities).forEach(commodity => {
+                if (station.commodities[commodity] > 0) {
+                    addMarkerToMap(stationName, station.lat, station.lon, commodity, station.commodities[commodity]);
+                }
+            });
         });
 
         updateStationSelect();
@@ -100,7 +105,6 @@ function addDeploymentStation() {
 
     // Store only relevant properties in stations object
     stations[stationName] = { lat, lon, commodities: {} };
-    addMarkerToMap(stationName, lat, lon);
 
     saveStations(); // Save without markers
     updateStationSelect();
@@ -112,11 +116,22 @@ function addDeploymentStation() {
     document.getElementById('stationLon').value = '';
 }
 
-// Helper function to add a marker to the map
-function addMarkerToMap(stationName, lat, lon) {
-    const marker = L.marker([lat, lon]).addTo(map).bindPopup(`Station: ${stationName}`);
-    stations[stationName].marker = marker; // Do not store marker in localStorage
-    console.log("Marker added for station:", stationName, lat, lon);
+// Helper function to add a marker to the map for each commodity
+function addMarkerToMap(stationName, lat, lon, commodity, quantity) {
+    const markerKey = `${stationName}_${commodity}`;
+
+    // Remove existing marker if it exists (to update popup)
+    if (markers[markerKey]) {
+        map.removeLayer(markers[markerKey]);
+    }
+
+    // Only add marker if quantity is greater than zero
+    if (quantity > 0) {
+        const marker = L.marker([lat, lon]).addTo(map).bindPopup(
+            `Station: ${stationName}<br>Commodity: ${commodity}<br>Quantity: ${quantity}`
+        );
+        markers[markerKey] = marker; // Save marker reference
+    }
 }
 
 // Function to update station dropdown
@@ -181,12 +196,10 @@ function addCommodity() {
         return;
     }
 
-    if (!stations[stationName].commodities[commodityType]) {
-        stations[stationName].commodities[commodityType] = 0;
-    }
-    stations[stationName].commodities[commodityType] += quantity;
-
+    // Update quantity and marker for commodity
+    stations[stationName].commodities[commodityType] = quantity;
     saveStations();
+    addMarkerToMap(stationName, stations[stationName].lat, stations[stationName].lon, commodityType, quantity);
     updateStationList();
 
     document.getElementById('commoditySelect').value = '';
@@ -217,9 +230,9 @@ function updateStationList() {
 
         const commoditiesList = document.createElement('ul');
         for (const commodity in station.commodities) {
-            const commodityItem = document.createElement('li');
             const quantity = station.commodities[commodity];
-            commodityItem.innerHTML = `${commodity}: ${quantity} `;
+            const commodityItem = document.createElement('li');
+            commodityItem.innerHTML = `${commodity}: ${quantity}`;
 
             const increaseButton = document.createElement('button');
             increaseButton.textContent = "+";
@@ -242,13 +255,21 @@ function updateStationList() {
 
 // Function to change the quantity of a commodity
 function changeQuantity(stationName, commodity, amount) {
-    if (stations[stationName] && stations[stationName].commodities[commodity] !== undefined) {
-        stations[stationName].commodities[commodity] += amount;
-        if (stations[stationName].commodities[commodity] < 0) {
-            stations[stationName].commodities[commodity] = 0;
-        }
+    const newQuantity = (stations[stationName].commodities[commodity] || 0) + amount;
 
+    if (newQuantity >= 0) {
+        stations[stationName].commodities[commodity] = newQuantity;
         saveStations();
+
+        // Update marker
+        addMarkerToMap(
+            stationName,
+            stations[stationName].lat,
+            stations[stationName].lon,
+            commodity,
+            newQuantity
+        );
+
         updateStationList();
     }
 }
