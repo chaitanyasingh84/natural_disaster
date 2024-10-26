@@ -1,11 +1,11 @@
 // Define the version number
-const version = "1.9.0";
+const version = "1.99.0";
 
-// Display the version number on the website
+// Display the version number on the website when the page loads
 window.onload = function () {
-    const versionDisplay = document.getElementById('versionNumber');
+    const versionDisplay = document.getElementById('versionDisplay');
     if (versionDisplay) {
-        versionDisplay.textContent = version;
+        versionDisplay.textContent = `Version: ${version}`;
     }
 };
 
@@ -75,7 +75,7 @@ window.addEventListener("DOMContentLoaded", () => {
         // Load saved stations and add markers for each station
         Object.keys(stations).forEach(stationName => {
             const station = stations[stationName];
-            addMarkerWithTooltip(stationName, station.lat, station.lon, station.commodities);
+            addMarkerToMap(stationName, station.lat, station.lon, station.commodities);
         });
 
         updateStationSelect();
@@ -99,6 +99,49 @@ function centerMapOnMarkers() {
     } else if (markerBounds.isValid()) {
         map.fitBounds(markerBounds);
     }
+}
+
+// Function to add a marker with a dynamic tooltip displaying commodities
+function addMarkerToMap(stationName, lat, lon, commodities) {
+    const markerKey = stationName;
+
+    // Remove existing marker if it exists (to avoid duplicates)
+    if (markers[markerKey]) {
+        map.removeLayer(markers[markerKey]);
+    }
+
+    // Only add a marker if there are commodities
+    const totalQuantity = Object.values(commodities).reduce((acc, qty) => acc + qty, 0);
+    if (totalQuantity > 0) {
+        const icon = L.divIcon({
+            className: 'simple-icon',
+            html: `<div style="width: 20px; height: 20px; background-color: #007bff; border-radius: 50%;"></div>`,
+            iconSize: [20, 20]
+        });
+
+        const tooltipContent = formatCommoditiesTooltip(commodities);
+
+        const marker = L.marker([lat, lon], { icon })
+            .addTo(map)
+            .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' });
+
+        markers[markerKey] = marker;
+    }
+
+    centerMapOnMarkers(); // Re-center map on markers after each update
+}
+
+// Helper function to format commodities for the tooltip
+function formatCommoditiesTooltip(commodities) {
+    return Object.entries(commodities)
+        .map(([commodity, quantity]) => {
+            const color = getColorForCommodity(commodity);
+            return `<div style="display: flex; align-items: center;">
+                        <div style="width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-right: 5px;"></div>
+                        ${commodity}: ${quantity}
+                    </div>`;
+        })
+        .join("");
 }
 
 // Function to update commodity dropdown
@@ -142,93 +185,7 @@ function addDeploymentStation() {
     document.getElementById('stationLon').value = '';
 }
 
-// Helper function to add a marker with a dynamic tooltip displaying commodities
-function addMarkerWithTooltip(stationName, lat, lon, commodities) {
-    const markerKey = stationName;
-
-    // Check if there are any non-zero commodities at this station
-    const hasSupplies = Object.values(commodities).some(quantity => quantity > 0);
-
-    // If there are no supplies, remove the marker (if it exists) and return
-    if (!hasSupplies) {
-        if (markers[markerKey]) {
-            map.removeLayer(markers[markerKey]);
-            delete markers[markerKey]; // Remove from markers object
-        }
-        return;
-    }
-
-    // Remove the existing marker if we are updating it
-    if (markers[markerKey]) {
-        map.removeLayer(markers[markerKey]);
-    }
-
-    // Create a simple icon
-    const icon = L.divIcon({
-        className: 'simple-icon',
-        html: `<div style="width: 20px; height: 20px; background-color: #007bff; border-radius: 50%;"></div>`,
-        iconSize: [20, 20]
-    });
-
-    // Format tooltip content
-    const tooltipContent = formatCommoditiesTooltip(commodities);
-
-    // Add the marker with the tooltip
-    const marker = L.marker([lat, lon], { icon })
-        .addTo(map)
-        .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' });
-
-    markers[markerKey] = marker;
-
-    // Re-center map after updating markers
-    centerMapOnMarkers();
-}
-
-// Helper function to format commodities for the tooltip
-function formatCommoditiesTooltip(commodities) {
-    return Object.entries(commodities)
-        .map(([commodity, quantity]) => {
-            const color = getColorForCommodity(commodity);
-            return `<div style="display: flex; align-items: center;">
-                        <div style="width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-right: 5px;"></div>
-                        ${commodity}: ${quantity}
-                    </div>`;
-        })
-        .join("");
-}
-
-// Function to update station dropdown
-function updateStationSelect() {
-    const stationSelect = document.getElementById('stationSelect');
-    stationSelect.innerHTML = '<option value="">Select Station</option>';
-
-    for (const station in stations) {
-        const option = document.createElement('option');
-        option.value = station;
-        option.textContent = station;
-        stationSelect.appendChild(option);
-    }
-}
-
-// Modified saveStations function to exclude markers
-function saveStations() {
-    const stationsToSave = {};
-
-    Object.keys(stations).forEach(stationName => {
-        const { lat, lon, commodities } = stations[stationName];
-        stationsToSave[stationName] = { lat, lon, commodities };
-    });
-
-    localStorage.setItem('stations', JSON.stringify(stationsToSave));
-}
-
-// Modified loadStations function
-function loadStations() {
-    const savedStations = localStorage.getItem('stations');
-    return savedStations ? JSON.parse(savedStations) : {};
-}
-
-// Additional functions for commodities and persistence
+// Function to add a new commodity type
 function addCommodityType() {
     const newType = document.getElementById('newCommodityType').value;
     if (!newType) {
@@ -245,19 +202,20 @@ function addCommodityType() {
     document.getElementById('newCommodityType').value = '';
 }
 
+// Function to add a commodity to a station
 function addCommodity() {
     const stationName = document.getElementById('stationSelect').value;
     const commodityType = document.getElementById('commoditySelect').value;
     const quantity = parseInt(document.getElementById('commodityQuantity').value);
 
-    if (!stationName || !commodityType || isNaN(quantity)) {
-        alert("Please select a station and a commodity type, and provide a valid quantity.");
+    if (!stationName || !commodityType || isNaN(quantity) || quantity <= 0) {
+        alert("Please select a station, a commodity type, and provide a valid quantity.");
         return;
     }
 
     stations[stationName].commodities[commodityType] = quantity;
     saveStations();
-    addMarkerWithTooltip(stationName, stations[stationName].lat, stations[stationName].lon, stations[stationName].commodities);
+    addMarkerToMap(stationName, stations[stationName].lat, stations[stationName].lon, stations[stationName].commodities);
     updateStationList();
     centerMapOnMarkers();
 
@@ -313,18 +271,41 @@ function updateStationList() {
 function changeQuantity(stationName, commodity, amount) {
     const newQuantity = (stations[stationName].commodities[commodity] || 0) + amount;
 
-    if (newQuantity >= 0) {
+    if (newQuantity > 0) {
         stations[stationName].commodities[commodity] = newQuantity;
-        saveStations();
-
-        addMarkerWithTooltip(
-            stationName,
-            stations[stationName].lat,
-            stations[stationName].lon,
-            stations[stationName].commodities
-        );
-
-        updateStationList();
-        centerMapOnMarkers();
+    } else {
+        delete stations[stationName].commodities[commodity];
     }
+
+    saveStations();
+
+    if (Object.keys(stations[stationName].commodities).length === 0) {
+        delete markers[stationName]; // Remove marker if no commodities remain
+    }
+
+    addMarkerToMap(
+        stationName,
+        stations[stationName].lat,
+        stations[stationName].lon,
+        stations[stationName].commodities
+    );
+
+    updateStationList();
+    centerMapOnMarkers();
+}
+
+// Persistence functions for stations
+function saveStations() {
+    const stationsToSave = {};
+    Object.keys(stations).forEach(stationName => {
+        const { lat, lon, commodities } = stations[stationName];
+        stationsToSave[stationName] = { lat, lon, commodities };
+    });
+
+    localStorage.setItem('stations', JSON.stringify(stationsToSave));
+}
+
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
 }
