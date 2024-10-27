@@ -11,16 +11,17 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in kilometers
 }
-function filterLocationsFromCommodities(commodity) {
-    
+function stationContainsCommodity(stationName, commodity) {
+    console.log(stations[stationName].commodities)
+    return commodity in stations[stationName].commodities
 }
-
 function filterLocationsWithinRadius(targetLat, targetLon, stations, radius) {
     available_locations = {}
     for(stationName in stations) {
         const distance = haversineDistance(targetLat, targetLon, stations[stationName]["lat"], stations[stationName]["lon"]);
-        console.log(distance)
-        if(distance <= radius) {
+        selected_commodity = document.getElementById("commoditySelect").value
+        console.log(selected_commodity)
+        if(distance <= radius &&  stationContainsCommodity(stationName, selected_commodity)) {
             map.addLayer(markers[stationName])
             available_locations[stationName] = stations[stationName]
         }
@@ -49,6 +50,7 @@ async function removeMarker(stationName) {
     console.log(markers)
 }
 
+
 function findStations() {
     radius = document.getElementById("radius-input").value
     filterLocationsWithinRadius(targetLat, targetLon, stations, radius)
@@ -56,4 +58,11 @@ function findStations() {
 function exitPopup() {
     document.getElementsByClassName("popup")[0].style.visibility = "hidden"
 }
+
+commodityTypes.forEach(type => {
+    const option = document.createElement('option');
+    option.value = type;
+    option.textContent = type;
+    commoditySelect.appendChild(option);
+});
 // console.log(filterLocationsWithinRadius(targetLat,targetLon,stations,radius), "test")
