@@ -8,18 +8,30 @@
 </head>
 <body>
 
-<div id="login-container">
-    <h2>Admin Login</h2>
-    <form onsubmit="login(); return false;">
-        <label for="username">Username</label>
-        <input type="text" id="username" placeholder="Enter Username" required />
+<div id="login-container" style="display: flex; gap: 175px;">
+    <div>
+        <h2>Admin Login</h2>
+        <form onsubmit="login(); return false;">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter Username" required />
 
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter Password" required />
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter Password" required />
 
-        <button type="submit">Login</button>
-        <p id="error-message" style="color: red;"></p>
+            <button type="submit">Login</button>
+            <p id="error-message" style="color: red;"></p>
+        </form>
+    </div>
+        
+    <div>
+        <h2>Public Login</h2>
+        <form onsubmit="login_public(); return false;">
+
+        <button type="submit-public">Login</button>
+        <p id="error-message-public" style="color: red;"></p>
     </form>
+    </div>
+
 </div>
 
 <script src="app.js"></script>

@@ -1,3 +1,7 @@
+/*
+Admin login details and functions
+*/
+
 const adminUser = document.getElementById("username");
 const adminPassword2 = document.getElementById("password");
 
@@ -28,4 +32,14 @@ if (window.location.pathname.includes('dashboard.html')) {
         console.log("Redirecting to login page - user not logged in.");
         window.location.href = 'index.html';
     }
+}
+
+
+/**
+ * Public user login details
+ */
+
+function login_public(){
+    console.log("to client");
+    window.location.href = 'clientDashboard.html'; // Redirected to client side of web application
 }
