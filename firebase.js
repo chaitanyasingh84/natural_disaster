@@ -1,6 +1,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, push, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDatabase, push, ref, set , get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 const firebaseConfig = {
   apiKey: "AIzaSyACx61Met7FUTN9yIK-YhNzQLl6iI-Lzx0",
   authDomain: "newhacksnaturaldisaster.firebaseapp.com",
@@ -60,22 +60,44 @@ function addCommodityToStation(deployerStation, commodityType, commodityQuantity
   })
 
   }*/
-  function addNewCommodity(commodityType){
+  async function addNewCommodity(commodityType){
     //Check if the commodity already exists. 
-    
-    
-    $("div").on("click", function() {
-      console.log("commodasdasdity")
+    const dbRef = ref(db, 'CommodityTypes');
+    get(dbRef)
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        console.log(snapshot.val()); // All child data is here
+      } else {
+        console.log("No data available");
+      }
     })
-    var ref = ref(db, 'CommodityTypes');
-    
-    ref.once('value', function(snapshot) {
-      snapshot.forEach(function(childSnapshot) {
-        var childKey = childSnapshot.key;
-        var childData = childSnapshot.val();
-        $scope.foo[childKey] = childData;
-      });
+    .catch((error) => {
+      console.error(error);
     });
+
+// dbRef.on(j
+    //   snapshot.forEach((childSnapshot) => {
+    //     const childKey = childSnapshot.key;
+    //     const childData = childSnapshot.val();
+    //     // ...
+    //   });
+    // }, {
+    //   onlyOnce: true
+    // });
+
+    
+    // $("div").on("click", function() {
+    //   console.log("commodasdasdity")
+    // })
+    // var ref = ref(db, 'CommodityTypes');
+    
+    // ref.once('value', function(snapshot) {
+    //   snapshot.forEach(function(childSnapshot) {
+    //     var childKey = childSnapshot.key;
+    //     var childData = childSnapshot.val();
+    //     $scope.foo[childKey] = childData;
+    //   });
+    // });
     // commodityList.on('value', (snapshot) => {
     //   snapshot.forEach((child) => {
     //     console.log(child.key); // "child1", "child2"

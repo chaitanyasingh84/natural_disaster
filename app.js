@@ -244,6 +244,7 @@ function addCommodityType() {
         saveCommodityTypes();
         updateCommoditySelect();
     }
+    addNewCommodity(newType)
 
     document.getElementById('newCommodityType').value = '';
 }

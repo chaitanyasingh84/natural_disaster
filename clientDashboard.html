@@ -26,9 +26,8 @@
         <!-- <select id="stationSelect">
             <option value="">Select Station</option>
         </select> -->
-        <select id="commoditySelect">
-            <option value="">Select Commodity</option>
-        </select>
+        <label for="commoditySelect">Select Commodity:</label>
+        <select id="commoditySelect"></select>
         <h3>Range</h3>
         <div class="slidecontainer">
             <input id="radius-input" type="range" value="50" min="1" max="500" oninput="this.nextElementSibling.value = this.value + 'km'">
@@ -42,11 +41,6 @@
 
     <!-- List of deployment stations and commodities -->
     <!-- <ul id="stationList"></ul> -->
-
-    <!-- Version Display -->
-    <footer>
-        <p id="versionDisplay">Version: <span id="versionNumber"></span></p>
-    </footer>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="app.js"></script>
