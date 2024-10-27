@@ -161,4 +161,5 @@ window.addEventListener("DOMContentLoaded", () => {
         updateCommoditySelect();
         centerMapOnMarkers(); // Center map on initial markers
     }
+    initializeMap()
 });
