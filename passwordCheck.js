@@ -41,5 +41,5 @@ if (window.location.pathname.includes('dashboard.html')) {
 
 function login_public(){
     console.log("to client");
-    window.location.href = 'clientDashboard.html'; // Redirected to client side of web application
+    window.location.href = 'Client-Side/user.html'; // Redirected to client side of web application
 }

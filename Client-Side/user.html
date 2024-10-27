@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commodity Map</title>
+    <link rel="stylesheet" href="user.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+</head>
+<body>
+    <!-- Header with Title, Radius Slider, and Logout Button -->
+    <div id="header">
+        <h1>Commodity Map</h1>
+
+        <!-- Radius Slider -->
+        <div class="slider-container">
+            <label for="radius-slider">Radius (km)</label>
+            <input type="range" id="radius-slider" min="1" max="50" value="10" oninput="updateRadius()">
+            <span id="radius-display">10 km</span>
+        </div>
+
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Request Modal -->
+    <div id="request-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRequestModal()">&times;</span>
+            <h2>Request Update for Out of Stock Commodities</h2>
+            <form id="request-form" onsubmit="submitRequestForm(event)">
+                <div id="commodity-checkboxes"></div>
+                <input type="email" id="user-email" placeholder="Enter your email" required>
+                <button type="submit">Submit Request</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaflet and JavaScript for Map Functionality -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="user.js"></script>
+</body>
+</html>

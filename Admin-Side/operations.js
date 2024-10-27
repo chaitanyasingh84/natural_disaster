@@ -1,6 +1,7 @@
 // Load data from localStorage
 let stations = JSON.parse(localStorage.getItem('stations')) || {};
 let commodityTypes = JSON.parse(localStorage.getItem('commodityTypes')) || [];
+let pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || {};
 
 // Save stations to localStorage
 function saveStations() {
@@ -10,6 +11,11 @@ function saveStations() {
 // Save commodity types to localStorage
 function saveCommodityTypes() {
     localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
+}
+
+// Save pending requests to localStorage
+function savePendingRequests() {
+    localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
 }
 
 // Add a new commodity type
@@ -47,15 +53,12 @@ function updateQuantity() {
     const quantity = parseInt(document.getElementById('commodityQuantity').value);
 
     if (stationName && commodity && !isNaN(quantity)) {
-        // Initialize the commodity if it doesn't exist yet
         if (!stations[stationName].commodities[commodity]) {
             stations[stationName].commodities[commodity] = 0;
         }
         
-        // Update quantity with the provided value (add or subtract)
         stations[stationName].commodities[commodity] += quantity;
 
-        // If the quantity drops to zero or below, remove the commodity from the station
         if (stations[stationName].commodities[commodity] <= 0) {
             delete stations[stationName].commodities[commodity];
         }
@@ -63,6 +66,7 @@ function updateQuantity() {
         saveStations();
         renderStationBlocks();
         document.getElementById('commodityQuantity').value = ''; // Reset input field
+        renderPendingRequests();
     }
 }
 
@@ -109,9 +113,58 @@ function renderStationBlocks() {
     });
 }
 
+// Render pending requests dynamically
+function renderPendingRequests() {
+    const pendingRequestsContainer = document.getElementById('pending-requests');
+    pendingRequestsContainer.innerHTML = '';
+
+    Object.keys(pendingRequests).forEach(commodity => {
+        pendingRequests[commodity].forEach((email, index) => {
+            const requestDiv = document.createElement('div');
+            requestDiv.className = 'pending-request';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `${commodity}-${index}`;
+            checkbox.addEventListener('change', () => sendNotification(commodity, email, index));
+
+            const label = document.createElement('label');
+            label.setAttribute('for', checkbox.id);
+            label.textContent = `${commodity} - ${email}`;
+
+            requestDiv.appendChild(checkbox);
+            requestDiv.appendChild(label);
+            pendingRequestsContainer.appendChild(requestDiv);
+        });
+    });
+}
+
 // Initialize page on load
 document.addEventListener('DOMContentLoaded', () => {
     updateStationSelect();
     updateCommoditySelect();
     renderStationBlocks();
+    renderPendingRequests();
 });
+
+function sendNotification(commodity, email, index) {
+    fetch('http://localhost:3000/send-email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, commodity })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert(`Notification sent to ${email} about ${commodity} being back in stock.`);
+            pendingRequests[commodity].splice(index, 1);
+            if (pendingRequests[commodity].length === 0) delete pendingRequests[commodity];
+            savePendingRequests();
+            renderPendingRequests();
+        } else {
+            alert('Failed to send email notification');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
