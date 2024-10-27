@@ -94,10 +94,11 @@ function updateCommoditySelect() {
     });
 }
 
-// Render station blocks dynamically
+// Render station blocks dynamically with two-column layout
 function renderStationBlocks() {
     const stationDisplay = document.getElementById('station-display');
-    stationDisplay.innerHTML = '';
+    stationDisplay.innerHTML = ''; // Clear previous blocks
+
     Object.keys(stations).forEach(stationName => {
         const station = stations[stationName];
         const stationBlock = document.createElement('div');
