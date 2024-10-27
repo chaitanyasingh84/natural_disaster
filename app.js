@@ -177,7 +177,10 @@ function addMarkerToMap(stationName, lat, lon, commodities) {
 
         const marker = L.marker([lat, lon], { icon })
             .addTo(map)
-            .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' });
+            .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' })
+            .on('click', function(e) {
+                console.log("yo")
+            });
         console.log(markerKey)
         markers[markerKey] = marker;
     }
