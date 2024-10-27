@@ -1,7 +1,5 @@
-import { initializeMap, addMarkerToMap, centerMapOnMarkers } from './map.js';
-
 // Define the version number
-const version = "3.0.0";
+const version = "1.0.0";
 
 // Display the version number on the website when the page loads
 window.onload = function () {
@@ -11,13 +9,107 @@ window.onload = function () {
     }
 };
 
+// Data storage
+let stations = loadStations();
+let commodityTypes = loadCommodityTypes();
+let markers = {}; // Store markers for each station
+const commodityColors = {}; // Store colors for each commodity
+
+// Persistence functions for stations
+function saveStations() {
+    const stationsToSave = {};
+    Object.keys(stations).forEach(stationName => {
+        const { lat, lon, commodities } = stations[stationName];
+        stationsToSave[stationName] = { lat, lon, commodities };
+    });
+
+    localStorage.setItem('stations', JSON.stringify(stationsToSave));
+}
+
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
+}
+
+// Persistence functions for commodity types
+function saveCommodityTypes() {
+    localStorage.setItem('commodityTypes', JSON.stringify(commodityTypes));
+}
+
+function loadCommodityTypes() {
+    const savedTypes = localStorage.getItem('commodityTypes');
+    return savedTypes ? JSON.parse(savedTypes) : [];
+}
+
 // Basic admin credentials
 const adminUsername = 'admin';
 const adminPassword = 'password';
 
-// Data storage
-let stations = loadStations();
-let commodityTypes = loadCommodityTypes();
+// Login function
+function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    if (username === adminUsername && password === adminPassword) {
+        localStorage.setItem('loggedIn', 'true');
+        window.location.href = 'dashboard.html';
+    } else {
+        document.getElementById('error-message').textContent = 'Incorrect username or password';
+    }
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('loggedIn');
+    window.location.href = 'index.html';
+}
+
+// Check if admin is logged in when loading dashboard
+if (window.location.pathname.includes('dashboard.html')) {
+    if (!localStorage.getItem('loggedIn')) {
+        window.location.href = 'index.html';
+    }
+}
+
+// Initialize map only if on the dashboard page and the map element exists
+let map;
+window.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById('map')) {
+        map = L.map('map').setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Load saved stations and add markers for each station
+        Object.keys(stations).forEach(stationName => {
+            const station = stations[stationName];
+            addMarkerToMap(stationName, station.lat, station.lon, station.commodities);
+        });
+
+        updateStationSelect();
+        updateStationList();
+        updateCommoditySelect();
+        centerMapOnMarkers(); // Center map on initial markers
+    }
+});
+
+// Function to generate a color palette with 30 unique colors
+function generateColorPalette() {
+    const colors = [];
+    for (let i = 0; i < 30; i++) {
+        colors.push(`#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`);
+    }
+    return colors;
+}
+
+// Assign colors to commodities from the palette
+const colorPalette = generateColorPalette();
+function getColorForCommodity(commodity) {
+    if (!commodityColors[commodity]) {
+        commodityColors[commodity] = colorPalette[Object.keys(commodityColors).length % colorPalette.length];
+    }
+    return commodityColors[commodity];
+}
 
 // Function to update station dropdown
 function updateStationSelect() {
@@ -32,11 +124,6 @@ function updateStationSelect() {
     }
 }
 
-function loadStations() {
-    const savedStations = localStorage.getItem('stations');
-    return savedStations ? JSON.parse(savedStations) : {};
-}
-
 // Function to update commodity dropdown
 function updateCommoditySelect() {
     const commoditySelect = document.getElementById('commoditySelect');
@@ -48,6 +135,67 @@ function updateCommoditySelect() {
         option.textContent = type;
         commoditySelect.appendChild(option);
     });
+}
+
+// Function to center the map based on the bounds of all markers
+function centerMapOnMarkers() {
+    const markerBounds = L.latLngBounds([]);
+    const markerList = Object.values(markers);
+
+    markerList.forEach(marker => {
+        markerBounds.extend(marker.getLatLng());
+    });
+
+    if (markerList.length === 1) {
+        map.setView(markerList[0].getLatLng(), 8); // Zoom level for a single marker
+    } else if (markerBounds.isValid()) {
+        map.fitBounds(markerBounds);
+    }
+}
+
+// Function to add a marker with a dynamic tooltip displaying commodities
+function addMarkerToMap(stationName, lat, lon, commodities) {
+    const markerKey = stationName;
+
+    // Remove existing marker if it exists (to avoid duplicates)
+    if (markers[markerKey]) {
+        map.removeLayer(markers[markerKey]);
+    }
+
+    // Only add a marker if there are commodities
+    const totalQuantity = Object.values(commodities).reduce((acc, qty) => acc + qty, 0);
+    if (totalQuantity > 0) {
+        const icon = L.divIcon({
+            className: 'simple-icon',
+            html: `<div style="width: 20px; height: 20px; background-color: #007bff; border-radius: 50%;"></div>`,
+            iconSize: [20, 20]
+        });
+
+        const tooltipContent = formatCommoditiesTooltip(stationName, commodities);
+
+        const marker = L.marker([lat, lon], { icon })
+            .addTo(map)
+            .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' });
+
+        markers[markerKey] = marker;
+    }
+
+    centerMapOnMarkers(); // Re-center map on markers after each update
+}
+
+// Helper function to format commodities for the tooltip, including the station name
+function formatCommoditiesTooltip(stationName, commodities) {
+    let tooltipContent = `<b>${stationName}</b><br>`;
+    tooltipContent += Object.entries(commodities)
+        .map(([commodity, quantity]) => {
+            const color = getColorForCommodity(commodity);
+            return `<div style="display: flex; align-items: center;">
+                        <div style="width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-right: 5px;"></div>
+                        ${commodity}: ${quantity}
+                    </div>`;
+        })
+        .join("");
+    return tooltipContent;
 }
 
 // Function to add a deployment station without saving the marker
@@ -150,21 +298,29 @@ function updateStationList() {
     }
 }
 
-// Initialize map and load stations on page load
-window.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById('map')) {
-        initializeMap();
+// Function to change the quantity of a commodity
+function changeQuantity(stationName, commodity, amount) {
+    const newQuantity = (stations[stationName].commodities[commodity] || 0) + amount;
 
-        // Load saved stations and add markers for each station
-        Object.keys(stations).forEach(stationName => {
-            const station = stations[stationName];
-            addMarkerToMap(stationName, station.lat, station.lon, station.commodities);
-        });
-
-        updateStationSelect();
-        updateStationList();
-        updateCommoditySelect();
-        centerMapOnMarkers(); // Center map on initial markers
+    if (newQuantity > 0) {
+        stations[stationName].commodities[commodity] = newQuantity;
+    } else {
+        delete stations[stationName].commodities[commodity];
     }
-    initializeMap()
-});
+
+    saveStations();
+
+    if (Object.keys(stations[stationName].commodities).length === 0) {
+        delete markers[stationName]; // Remove marker if no commodities remain
+    }
+
+    addMarkerToMap(
+        stationName,
+        stations[stationName].lat,
+        stations[stationName].lon,
+        stations[stationName].commodities
+    );
+
+    updateStationList();
+    centerMapOnMarkers();
+}
