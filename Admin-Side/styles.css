@@ -23,9 +23,9 @@ background-color: #0056b3;
 #map {
 flex: 1; width: 100%; height: calc(100vh - 60px); /* Adjusts height based on header size */
 }
-/* Logout button special styling */ button:last-child {
+/* Logout button special styling */ button {
 background-color: #dc3545;
 }
-button:last-child:hover {
+button:hover {
 background-color: #c82333;
 }
