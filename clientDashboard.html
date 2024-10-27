@@ -22,16 +22,17 @@
         </select>
         <h3>Range</h3>
         <div class="slidecontainer">
-            <input type="range" value="50" min="1" max="75" oninput="this.nextElementSibling.value = this.value + 'km'">
+            <input id="radius-input" type="range" value="50" min="1" max="500" oninput="this.nextElementSibling.value = this.value + 'km'">
             <output>50 km</output>
         </div>
+        <button onclick=findStations()>Find Stations</button>
     </div>
 
     <!-- Map to show deployment stations -->
     <div id="map" style="height: 500px; width: 100%;"></div>
 
     <!-- List of deployment stations and commodities -->
-    <ul id="stationList"></ul>
+    <!-- <ul id="stationList"></ul> -->
 
     <!-- Version Display -->
     <footer>
@@ -40,6 +41,6 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="app.js"></script>
-    <script src="clientLogic.js"></script>
+    <script src="clientLogic.js" async></script>
 </body>
 </html>

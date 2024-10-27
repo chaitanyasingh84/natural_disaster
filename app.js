@@ -23,7 +23,9 @@ function saveStations() {
         stationsToSave[stationName] = { lat, lon, commodities };
     });
 
-    localStorage.setItem('stations', JSON.stringify(stationsToSave));
+
+    // localStorage.setItem('stations', JSON.stringify(stationsToSave));
+    
 }
 
 function loadStations() {
@@ -176,7 +178,7 @@ function addMarkerToMap(stationName, lat, lon, commodities) {
         const marker = L.marker([lat, lon], { icon })
             .addTo(map)
             .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' });
-
+        console.log(markerKey)
         markers[markerKey] = marker;
     }
 
