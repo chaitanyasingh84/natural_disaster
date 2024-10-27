@@ -1,0 +1,31 @@
+/* General reset and styling */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif;
+}
+/* Body styling */ body {
+display: flex; flex-direction: column; height: 100vh; overflow: hidden; background-color: #f4f4f9;
+}
+/* Header styling */
+#header {
+display: flex; justify-content: space-between; align-items: center; background-color: #333; color: white; padding: 10px 20px;
+}
+#header h1 {
+font-size: 1.5em; color: #fff;
+}
+.buttons { display: flex; gap: 10px;
+}
+button {
+background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: background-color 0.3s ease;
+}
+button:hover {
+background-color: #0056b3;
+}
+/* Map container styling */
+#map {
+flex: 1; width: 100%; height: calc(100vh - 60px); /* Adjusts height based on header size */
+}
+/* Logout button special styling */ button:last-child {
+background-color: #dc3545;
+}
+button:last-child:hover {
+background-color: #c82333;
+}

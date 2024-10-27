@@ -13,7 +13,7 @@ function login(){
     if(userText == "rick" && userPassword == "roll"){
         localStorage.setItem('loggedIn', true);
         console.log("Login successful");
-        window.location.href = 'dashboard.html';
+        window.location.href = 'Admin-Side/index.html';
     } else {
         document.getElementById('error-message').textContent = 'Incorrect username or password';
     }
@@ -30,7 +30,7 @@ function logout() {
 if (window.location.pathname.includes('dashboard.html')) {
     if (!localStorage.getItem('loggedIn')) {
         console.log("Redirecting to login page - user not logged in.");
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
     }
 }
 
