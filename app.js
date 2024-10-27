@@ -50,6 +50,11 @@ function updateStationSelect() {
     }
 }
 
+function loadStations() {
+    const savedStations = localStorage.getItem('stations');
+    return savedStations ? JSON.parse(savedStations) : {};
+}
+
 // Function to update commodity dropdown
 function updateCommoditySelect() {
     const commoditySelect = document.getElementById('commoditySelect');
