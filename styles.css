@@ -5,6 +5,7 @@ body {
 }
 
 #map {
+    z-index: 1;
     margin: 20px;
 }
 

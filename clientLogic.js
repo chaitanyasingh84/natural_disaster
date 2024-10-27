@@ -11,6 +11,9 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in kilometers
 }
+function filterLocationsFromCommodities(commodity) {
+    
+}
 
 function filterLocationsWithinRadius(targetLat, targetLon, stations, radius) {
     available_locations = {}
@@ -50,5 +53,7 @@ function findStations() {
     radius = document.getElementById("radius-input").value
     filterLocationsWithinRadius(targetLat, targetLon, stations, radius)
 }
-
+function exitPopup() {
+    document.getElementsByClassName("popup")[0].style.visibility = "hidden"
+}
 // console.log(filterLocationsWithinRadius(targetLat,targetLon,stations,radius), "test")

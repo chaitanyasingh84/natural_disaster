@@ -1,6 +1,9 @@
 .popup {
+    visibility: hidden;
+    color: white;
+    padding: 50px;
     background: black;
-    position: absolute;
+    position: sticky;
     left: 0; 
     z-index: 10;
     top: 50%;
@@ -8,6 +11,5 @@
     right: 0; 
     margin-inline: auto; 
     width: 200px;
-    height: 200px;
     width: fit-content
 }

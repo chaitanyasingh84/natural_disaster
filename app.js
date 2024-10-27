@@ -179,7 +179,7 @@ function addMarkerToMap(stationName, lat, lon, commodities) {
             .addTo(map)
             .bindTooltip(tooltipContent, { direction: "top", offset: [0, -10], className: 'commodity-tooltip' })
             .on('click', function(e) {
-                console.log("yo")
+                document.getElementsByClassName("popup")[0].style.visibility = "visible"
             });
         console.log(markerKey)
         markers[markerKey] = marker;
