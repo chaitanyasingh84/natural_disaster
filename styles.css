@@ -27,6 +27,12 @@ body {
     text-align: center;
 }
 
+.inline-child{
+    display: inline-block;
+}
+
+
+
 input, select, button {
     display: block;
     width: 100%;
