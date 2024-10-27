@@ -10,7 +10,7 @@ function login(){
     userText = adminUser.value;
     userPassword = adminPassword2.value;
 
-    if(userText == "rick" && userPassword == "roll"){
+    if(userText == "admin" && userPassword == "admin"){
         localStorage.setItem('loggedIn', true);
         console.log("Login successful");
         window.location.href = 'Admin-Side/index.html';

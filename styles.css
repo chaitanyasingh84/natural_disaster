@@ -2,6 +2,13 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    justify-content: center;
+}
+
+#title{
+    text-align: center;
+    position: relative;
+    top: 50px
 }
 
 #map {
@@ -24,9 +31,16 @@ body {
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    background-color: #f9f9f9;
     text-align: center;
     justify-content: center;
+}
+
+#login-container > div{
+    background-color: lightgray;
+    margin: 25px;
+    padding: 30px;
+    border-radius: 5px;
+    flex-grow: 1;
 }
 
 input, select, button {
