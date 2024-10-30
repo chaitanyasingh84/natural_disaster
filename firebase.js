@@ -1,100 +1,36 @@
+// Import the functions you need from the SDKs you need
+//Most likely need to change the firebase/analytics part
+const {initializeApp} = require("firebase/app");
+const {getFirestore} = require("firebase/firestore");
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, push, ref , get , child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyACx61Met7FUTN9yIK-YhNzQLl6iI-Lzx0",
-  authDomain: "newhacksnaturaldisaster.firebaseapp.com",
-  databaseURL: "https://newhacksnaturaldisaster-default-rtdb.firebaseio.com",
-  projectId: "newhacksnaturaldisaster",
-  storageBucket: "newhacksnaturaldisaster.appspot.com",
-  messagingSenderId: "226374042268",
-  appId: "1:226374042268:web:b31f9507d25b406ca6a359",
-  measurementId: "G-S3F6ZSW91M"
+  apiKey: "AIzaSyBgoVGQmuQPqsmYDFYuS6mmDl8QQhtAkDI",
+  authDomain: "newhacksreliefgrid.firebaseapp.com",
+  databaseURL: "https://newhacksreliefgrid-default-rtdb.firebaseio.com",
+  projectId: "newhacksreliefgrid",
+  storageBucket: "newhacksreliefgrid.firebasestorage.app",
+  messagingSenderId: "774372466377",
+  appId: "1:774372466377:web:e49f20acba163c153db718",
+  measurementId: "G-Q5H28EYXH6"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase();
+// Initialize Firebase
+let app;
+let firestoreDb;
+//const analytics = getAnalytics(app);
 
-function addDatabaseStation(name, lat, long, commodities){
-    var stationsReference = ref(db, 'Deployment Stations/');
-  stationsReference.child("name").setValue(name)
+const getFirebaseApp = () => {
+  app = initializeApp(firebaseConfig);
+  firestoreDb = getFirestore();
+  return app;
+};
 
-  // var stationsReference = ref(db, 'Deployment Stations/');
-  // stationsReference.child(name).setValue(
-  //   lat
-  // )
-  /*
-  
-  stationsReference.child("name").setValue()
-  push(stationsReference, {
-    StationName: name,
-    Properties:{
-        Latitude: lat,
-        Longitude: long,
-    }
-  })
-    */
-  .then(()=>{
-    alert("Deployer Station Added Successfully");
-  })
-  .catch((error) =>{
-    alert("An error has occurred!");
-    console.log(error); 
-  })
-  
-}
-
-function addCommodityToStation(deployerStation, commodityType, commodityQuantity){
-  var commoditiesReference = ref(db, 'Deployment Stations/' + deployerStation + '/Commodities');
-  push(commoditiesReference, {
-      type: commodityType,
-      quantity: commodityQuantity
-  })
-  .then(()=>{
-    alert("Deployer Station Updated Successfully");
-  })
-  .catch((error) =>{
-    alert("An error has occurred!");
-    console.log(error);
-  })
-}
-
-  async function addNewCommodity(commodityType){
-    //Check if the commodity already exists. 
-    const dbRef = ref(db, 'CommodityTypes');
-
-    push(dbRef, commodityType)
-    .then(()=>{
-      alert("Commodity Added Successfully");
-    })
-    .catch((error) =>{
-      alert("An error has occurred!");
-      console.log(error);
-    })
-
-  }
-
-  async function readDeploymentStation(commodityType){
-    //Check if the commodity already exists. 
-    const dbRef = ref(db, 'Deployment Stations/');
-    get(dbRef)
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        console.log(snapshot.val()); // All child data is here
-      } else {
-        console.log("No data available");
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-    });}
-
-
-function deleteDatabaseStation(deployerStation){}
-
-//function edit Commodity
-
-window.addDatabaseStation = addDatabaseStation
-window.addCommodityToStation = addCommodityToStation
-window.addNewCommodity = addNewCommodity
-
+module.exports = {
+  initializeApp,
+  getFirebaseApp,
+};
