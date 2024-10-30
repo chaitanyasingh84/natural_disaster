@@ -1,5 +1,4 @@
-// Load data from localStorage
-let stations = JSON.parse(localStorage.getItem('stations')) || {};
+var stations = JSON.parse(localStorage.getItem('stations')) || {};
 let commodityTypes = JSON.parse(localStorage.getItem('commodityTypes')) || [];
 let pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || {};
 
@@ -19,7 +18,7 @@ function savePendingRequests() {
 }
 
 // Add a new commodity type
-function addCommodityType() {
+async function addCommodityType() {
     const newType = document.getElementById('newCommodityType').value;
     if (newType && !commodityTypes.includes(newType)) {
         commodityTypes.push(newType);
@@ -27,7 +26,9 @@ function addCommodityType() {
         updateCommoditySelect();
         document.getElementById('newCommodityType').value = '';
     }
-}
+    addNewCommodity(newType);
+    stations = await retrieveAllStations();
+    console.log(stations);}
 
 // Add a new station
 function addStation() {
@@ -44,6 +45,8 @@ function addStation() {
         document.getElementById('stationLat').value = '';
         document.getElementById('stationLon').value = '';
     }
+    addDatabaseStation(name, lat, lon, {});
+
 }
 
 // Update the quantity of a commodity at a station, allowing both positive and negative values
@@ -74,12 +77,15 @@ function updateQuantity() {
 function updateStationSelect() {
     const stationSelect = document.getElementById('stationSelect');
     stationSelect.innerHTML = '<option value="">Select Station</option>';
-    Object.keys(stations).forEach(name => {
+    if(stations != null){
+        Object.keys(stations).forEach(name => {
         const option = document.createElement('option');
         option.value = name;
         option.textContent = name;
         stationSelect.appendChild(option);
     });
+    }
+    
 }
 
 // Update commodity dropdown
@@ -98,7 +104,7 @@ function updateCommoditySelect() {
 function renderStationBlocks() {
     const stationDisplay = document.getElementById('station-display');
     stationDisplay.innerHTML = ''; // Clear previous blocks
-
+    if(stations != null){
     Object.keys(stations).forEach(stationName => {
         const station = stations[stationName];
         const stationBlock = document.createElement('div');
@@ -112,6 +118,7 @@ function renderStationBlocks() {
         stationBlock.innerHTML = `<h3>${stationName}</h3><div>${commoditiesHtml}</div>`;
         stationDisplay.appendChild(stationBlock);
     });
+}
 }
 
 // Render pending requests dynamically
